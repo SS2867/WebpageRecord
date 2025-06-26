@@ -1,0 +1,50 @@
+{
+  "name": "web-video-recorder-extension",
+  "version": "1.0.0",
+  "description": "A Chrome extension for screen recording and video management",
+  "main": "popup.js",
+  "scripts": {
+    "build": "node build_extension.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "echo \"Linting not configured\"",
+    "icons": "echo \"Please use create_icons.html to generate icons\""
+  },
+  "keywords": [
+    "chrome-extension",
+    "screen-recording",
+    "video-recorder",
+    "webm",
+    "media-recorder"
+  ],
+  "author": "Zane",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/web-video-recorder-extension.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yourusername/web-video-recorder-extension/issues"
+  },
+  "homepage": "https://github.com/yourusername/web-video-recorder-extension#readme",
+  "devDependencies": {
+    "archiver": "^5.3.1"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "files": [
+    "manifest.json",
+    "popup.html",
+    "popup.js",
+    "background.js",
+    "content.js",
+    "player.html",
+    "player.js",
+    "icons/",
+    "README.md",
+    "PRIVACY_POLICY.md"
+  ],
+  "chrome": {
+    "minimum_version": "88.0"
+  }
+} 
