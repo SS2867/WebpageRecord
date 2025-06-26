@@ -1,233 +1,490 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>视频播放器 - 网页视频录制器</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      background: #000;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>视频播放器 - 网页视频录制工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    .player-container {
-      width: 100vw;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
 
-    .video-container {
-      flex: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: #000;
-      position: relative;
-    }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
 
-    .video-container video {
-      max-width: 100%;
-      max-height: 100%;
-      object-fit: contain;
-    }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
 
-    .video-controls {
-      background: rgba(0, 0, 0, 0.8);
-      padding: 20px;
-      color: white;
-    }
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
 
-    .control-row {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      margin-bottom: 12px;
-    }
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
 
-    .control-row:last-child {
-      margin-bottom: 0;
-    }
+        .player-container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
 
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 8px 16px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: all 0.2s;
-      background: rgba(255, 255, 255, 0.1);
-      color: white;
-    }
+        .video-player {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
 
-    .btn:hover {
-      background: rgba(255, 255, 255, 0.2);
-    }
+        .video-player video {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
 
-    .btn-primary {
-      background: #007bff;
-    }
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
 
-    .btn-primary:hover {
-      background: #0056b3;
-    }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
 
-    .progress-container {
-      flex: 1;
-      position: relative;
-    }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
 
-    .progress {
-      width: 100%;
-      height: 8px;
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 4px;
-      cursor: pointer;
-      position: relative;
-    }
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
 
-    .progress-bar {
-      height: 100%;
-      background: #007bff;
-      border-radius: 4px;
-      transition: width 0.1s;
-    }
+        .btn-success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
 
-    .progress:hover {
-      height: 12px;
-    }
+        .file-upload {
+            text-align: center;
+            margin: 20px 0;
+            padding: 30px;
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            background: #f9f9f9;
+        }
 
-    .time-display {
-      font-size: 14px;
-      color: rgba(255, 255, 255, 0.8);
-      min-width: 120px;
-      text-align: center;
-    }
+        .file-upload.dragover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
 
-    .playback-rate {
-      background: rgba(255, 255, 255, 0.1);
-      border: none;
-      color: white;
-      padding: 6px 12px;
-      border-radius: 4px;
-      cursor: pointer;
-    }
+        .file-input {
+            display: none;
+        }
 
-    .playback-rate option {
-      background: #333;
-      color: white;
-    }
+        .upload-label {
+            display: inline-block;
+            padding: 15px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
 
-    .volume-control {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
+        .upload-label:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
 
-    .volume-slider {
-      width: 80px;
-      height: 4px;
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: 2px;
-      cursor: pointer;
-    }
+        .video-list {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
 
-    .volume-slider::-webkit-slider-thumb {
-      appearance: none;
-      width: 12px;
-      height: 12px;
-      background: white;
-      border-radius: 50%;
-      cursor: pointer;
-    }
+        .video-list h3 {
+            color: #667eea;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
 
-    .fullscreen-btn {
-      margin-left: auto;
-    }
+        .video-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
 
-    .loading {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      color: white;
-      font-size: 18px;
-    }
+        .video-item:hover {
+            background: #f8f9fa;
+            border-color: #667eea;
+        }
 
-    .error-message {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      color: #dc3545;
-      text-align: center;
-      font-size: 16px;
-    }
-  </style>
+        .video-item.active {
+            background: #e8f5e8;
+            border-color: #2e7d32;
+        }
+
+        .video-thumbnail {
+            width: 80px;
+            height: 60px;
+            background: #ddd;
+            border-radius: 5px;
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 0.8rem;
+        }
+
+        .video-info {
+            flex: 1;
+        }
+
+        .video-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .video-meta {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .video-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 0.9rem;
+        }
+
+        .no-videos {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .no-videos p {
+            margin-bottom: 20px;
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .back-link a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 10px 20px;
+            border: 2px solid white;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+        }
+
+        .back-link a:hover {
+            background: white;
+            color: #667eea;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .video-item {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .video-thumbnail {
+                margin-right: 0;
+                margin-bottom: 10px;
+            }
+            
+            .video-actions {
+                margin-top: 10px;
+            }
+        }
+    </style>
 </head>
 <body>
-  <div class="player-container">
-    <div class="video-container">
-      <video id="videoPlayer" controls>
-        您的浏览器不支持视频播放。
-      </video>
-      <div id="loading" class="loading">
-        <i class="bi bi-arrow-clockwise"></i> 加载中...
-      </div>
-      <div id="errorMessage" class="error-message" style="display: none;">
-        <i class="bi bi-exclamation-triangle"></i><br>
-        视频加载失败
-      </div>
-    </div>
-    
-    <div class="video-controls">
-      <div class="control-row">
-        <button id="playPauseBtn" class="btn">
-          <i class="bi bi-play-fill"></i>
-        </button>
-        
-        <div class="progress-container">
-          <div class="progress" id="progressBar">
-            <div class="progress-bar" id="progressFill"></div>
-          </div>
+    <div class="container">
+        <div class="header">
+            <h1>视频播放器</h1>
+            <p>查看和管理您的录制视频</p>
         </div>
-        
-        <div class="time-display" id="timeDisplay">
-          00:00 / 00:00
-        </div>
-      </div>
-      
-      <div class="control-row">
-        <select id="playbackRate" class="playback-rate">
-          <option value="0.5">0.5x</option>
-          <option value="0.75">0.75x</option>
-          <option value="1" selected>1x</option>
-          <option value="1.25">1.25x</option>
-          <option value="1.5">1.5x</option>
-          <option value="2">2x</option>
-        </select>
-        
-        <div class="volume-control">
-          <button id="muteBtn" class="btn">
-            <i class="bi bi-volume-up"></i>
-          </button>
-          <input type="range" id="volumeSlider" class="volume-slider" min="0" max="100" value="100">
-        </div>
-        
-        <button id="fullscreenBtn" class="btn fullscreen-btn">
-          <i class="bi bi-fullscreen"></i>
-        </button>
-      </div>
-    </div>
-  </div>
 
-  <script src="player.js"></script>
+        <div class="player-container">
+            <div class="video-player" id="videoPlayer" style="display: none;">
+                <video id="mainVideo" controls>
+                    您的浏览器不支持视频播放
+                </video>
+            </div>
+            
+            <div class="controls">
+                <button class="btn" onclick="document.getElementById('fileInput').click()">选择视频文件</button>
+                <button class="btn btn-secondary" onclick="clearVideo()">清除视频</button>
+                <button class="btn btn-success" onclick="downloadCurrentVideo()" id="downloadBtn" disabled>下载视频</button>
+            </div>
+
+            <div class="file-upload" id="fileUpload">
+                <p>拖拽视频文件到这里，或点击下方按钮选择文件</p>
+                <label for="fileInput" class="upload-label">选择视频文件</label>
+                <input type="file" id="fileInput" class="file-input" accept="video/*" multiple>
+            </div>
+        </div>
+
+        <div class="video-list">
+            <h3>本地视频列表</h3>
+            <div id="videoList">
+                <div class="no-videos">
+                    <p>暂无视频文件</p>
+                    <p>请选择视频文件或从录制页面导入</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="back-link">
+            <a href="index.html">返回主页</a>
+        </div>
+    </div>
+
+    <script>
+        let currentVideo = null;
+        let videoFiles = [];
+
+        const fileInput = document.getElementById('fileInput');
+        const fileUpload = document.getElementById('fileUpload');
+        const videoPlayer = document.getElementById('videoPlayer');
+        const mainVideo = document.getElementById('mainVideo');
+        const videoList = document.getElementById('videoList');
+        const downloadBtn = document.getElementById('downloadBtn');
+
+        // 文件选择处理
+        fileInput.addEventListener('change', handleFileSelect);
+
+        // 拖拽处理
+        fileUpload.addEventListener('dragover', handleDragOver);
+        fileUpload.addEventListener('dragleave', handleDragLeave);
+        fileUpload.addEventListener('drop', handleDrop);
+
+        // 从localStorage加载视频列表
+        loadVideoList();
+
+        function handleFileSelect(event) {
+            const files = Array.from(event.target.files);
+            processFiles(files);
+        }
+
+        function handleDragOver(event) {
+            event.preventDefault();
+            fileUpload.classList.add('dragover');
+        }
+
+        function handleDragLeave(event) {
+            event.preventDefault();
+            fileUpload.classList.remove('dragover');
+        }
+
+        function handleDrop(event) {
+            event.preventDefault();
+            fileUpload.classList.remove('dragover');
+            
+            const files = Array.from(event.dataTransfer.files);
+            const videoFiles = files.filter(file => file.type.startsWith('video/'));
+            processFiles(videoFiles);
+        }
+
+        function processFiles(files) {
+            files.forEach(file => {
+                const videoFile = {
+                    id: Date.now() + Math.random(),
+                    name: file.name,
+                    size: file.size,
+                    type: file.type,
+                    lastModified: file.lastModified,
+                    blob: file
+                };
+
+                videoFiles.push(videoFile);
+                saveVideoList();
+                updateVideoList();
+            });
+        }
+
+        function playVideo(videoFile) {
+            currentVideo = videoFile;
+            const url = URL.createObjectURL(videoFile.blob);
+            mainVideo.src = url;
+            videoPlayer.style.display = 'block';
+            downloadBtn.disabled = false;
+            
+            // 更新活动状态
+            document.querySelectorAll('.video-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelector(`[data-id="${videoFile.id}"]`).classList.add('active');
+        }
+
+        function clearVideo() {
+            if (mainVideo.src) {
+                URL.revokeObjectURL(mainVideo.src);
+                mainVideo.src = '';
+                videoPlayer.style.display = 'none';
+                currentVideo = null;
+                downloadBtn.disabled = true;
+                
+                document.querySelectorAll('.video-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+            }
+        }
+
+        function downloadCurrentVideo() {
+            if (currentVideo) {
+                const url = URL.createObjectURL(currentVideo.blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = currentVideo.name;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }
+        }
+
+        function deleteVideo(videoId) {
+            const index = videoFiles.findIndex(v => v.id === videoId);
+            if (index > -1) {
+                if (currentVideo && currentVideo.id === videoId) {
+                    clearVideo();
+                }
+                videoFiles.splice(index, 1);
+                saveVideoList();
+                updateVideoList();
+            }
+        }
+
+        function updateVideoList() {
+            if (videoFiles.length === 0) {
+                videoList.innerHTML = `
+                    <div class="no-videos">
+                        <p>暂无视频文件</p>
+                        <p>请选择视频文件或从录制页面导入</p>
+                    </div>
+                `;
+                return;
+            }
+
+            videoList.innerHTML = videoFiles.map(video => `
+                <div class="video-item" data-id="${video.id}">
+                    <div class="video-thumbnail">🎥</div>
+                    <div class="video-info">
+                        <div class="video-title">${video.name}</div>
+                        <div class="video-meta">
+                            ${formatFileSize(video.size)} • ${new Date(video.lastModified).toLocaleString()}
+                        </div>
+                    </div>
+                    <div class="video-actions">
+                        <button class="btn btn-small" onclick="playVideo(${JSON.stringify(video).replace(/"/g, '&quot;')})">播放</button>
+                        <button class="btn btn-small btn-secondary" onclick="deleteVideo(${video.id})">删除</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function saveVideoList() {
+            // 注意：这里只保存元数据，不保存实际的blob数据
+            const metadata = videoFiles.map(video => ({
+                id: video.id,
+                name: video.name,
+                size: video.size,
+                type: video.type,
+                lastModified: video.lastModified
+            }));
+            localStorage.setItem('videoList', JSON.stringify(metadata));
+        }
+
+        function loadVideoList() {
+            const saved = localStorage.getItem('videoList');
+            if (saved) {
+                try {
+                    const metadata = JSON.parse(saved);
+                    // 注意：这里只能恢复元数据，实际的blob数据需要用户重新选择文件
+                    console.log('已保存的视频元数据:', metadata);
+                } catch (error) {
+                    console.error('加载视频列表失败:', error);
+                }
+            }
+        }
+
+        // 页面卸载时清理资源
+        window.addEventListener('beforeunload', () => {
+            if (mainVideo.src) {
+                URL.revokeObjectURL(mainVideo.src);
+            }
+        });
+    </script>
 </body>
 </html> 

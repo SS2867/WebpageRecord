@@ -1,704 +1,781 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>视频录制</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
-  <style>
-    /* 应用容器 */
-    .app-container {
-      max-width: 800px;
-      margin: 20px auto;
-      padding: 0 20px;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>网页视频录制工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    /* 侧边栏样式 */
-    .sidebar {
-      background: #f8f9fa;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-      max-width: 480px;
-      margin: 0 auto;
-      border-left: 1px solid #dee2e6;
-      border-right: 1px solid #dee2e6;
-    }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
 
-    .sidebar-header {
-      padding: 20px;
-      border-bottom: 1px solid #dee2e6;
-    }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
 
-    .sidebar-header h1 {
-      font-size: 24px;
-      margin: 0;
-      color: #1a1a1a;
-    }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
 
-    /* 控制面板 */
-    .control-panel {
-      background: #fff;
-      padding: 20px;
-      border-radius: 10px;
-      margin-bottom: 20px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
 
-    .recording-status {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 16px;
-      background: #e9ecef;
-      border-radius: 20px;
-      font-size: 14px;
-    }
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
 
-    .recording-status.active {
-      background: #dc3545;
-      color: white;
-    }
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
 
-    .recording-status i {
-      font-size: 16px;
-    }
+        .feature-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
 
-    /* 搜索框 */
-    .search-box {
-      position: relative;
-      padding: 20px;
-      border-bottom: 1px solid #dee2e6;
-    }
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.3);
+        }
 
-    .search-box input {
-      width: 100%;
-      padding: 10px 20px 10px 40px;
-      border: 1px solid #dee2e6;
-      border-radius: 20px;
-      background: #fff;
-      font-size: 14px;
-    }
+        .feature-card h3 {
+            color: #667eea;
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
 
-    .search-box i {
-      position: absolute;
-      left: 35px;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #6c757d;
-    }
+        .feature-card h3::before {
+            content: "🎥";
+            margin-right: 10px;
+            font-size: 1.8rem;
+        }
 
-    /* 录制列表 */
-    .recorded-videos {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
+        .feature-card p {
+            color: #666;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
 
-    .video-item {
-      display: flex;
-      gap: 15px;
-      padding: 15px;
-      border-radius: 10px;
-      background: #fff;
-      transition: all 0.3s ease;
-      cursor: pointer;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
 
-    .video-item:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
 
-    .video-preview {
-      width: 160px;
-      height: 90px;
-      border-radius: 8px;
-      overflow: hidden;
-      position: relative;
-      flex-shrink: 0;
-      background: #000;
-    }
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
 
-    .video-preview video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
+        .btn-success {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
 
-    .play-button {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 36px;
-      height: 36px;
-      background: rgba(0, 0, 0, 0.7);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      z-index: 10;
-      transition: background-color 0.3s;
-    }
+        .btn-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
 
-    .play-button:hover {
-      background: rgba(0, 0, 0, 0.9);
-    }
+        .web-recorder {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
 
-    .play-button::after {
-      content: '';
-      border-style: solid;
-      border-width: 8px 0 8px 12px;
-      border-color: transparent transparent transparent white;
-      margin-left: 2px;
-    }
+        .web-recorder h2 {
+            color: #667eea;
+            font-size: 2rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
 
-    .video-info {
-      flex: 1;
-      min-width: 0;
-      display: flex;
-      flex-direction: column;
-    }
+        .recorder-controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
 
-    .video-info h3 {
-      font-size: 14px;
-      margin: 0 0 8px;
-      color: #1a1a1a;
-    }
+        .recorder-status {
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
 
-    .video-actions {
-      display: flex;
-      gap: 8px;
-      margin-top: auto;
-    }
+        .status-ready {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
 
-    .video-actions button {
-      padding: 6px 12px;
-      border: none;
-      border-radius: 6px;
-      background: #f8f9fa;
-      color: #495057;
-      font-size: 13px;
-      cursor: pointer;
-      transition: all 0.2s;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
+        .status-recording {
+            background: #ffebee;
+            color: #c62828;
+            animation: pulse 1.5s infinite;
+        }
 
-    .video-actions button:hover {
-      background: #e9ecef;
-    }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
 
-    /* 按钮样式 */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 10px 20px;
-      font-size: 14px;
-      border-radius: 6px;
-    }
+        .video-container {
+            text-align: center;
+            margin-top: 20px;
+        }
 
-    /* 视频模态框样式 */
-    .modal-fullscreen .modal-content {
-      background-color: #000;
-    }
+        .video-container video {
+            max-width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
 
-    .modal-fullscreen .modal-header {
-      background-color: rgba(255, 255, 255, 0.9);
-      backdrop-filter: blur(10px);
-    }
+        .video-list {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
 
-    .video-container {
-      background-color: #000 !important;
-      min-height: calc(100vh - 200px);
-    }
+        .video-list h3 {
+            color: #667eea;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            text-align: center;
+        }
 
-    .video-container video {
-      max-height: calc(100vh - 200px);
-      background: #000;
-    }
+        .video-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border: 1px solid #eee;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            transition: all 0.3s ease;
+        }
 
-    .video-controls {
-      border-top: 1px solid #dee2e6;
-    }
+        .video-item:hover {
+            background: #f8f9fa;
+            border-color: #667eea;
+        }
 
-    .video-controls .progress {
-      cursor: pointer;
-      transition: height 0.2s;
-    }
+        .video-item.active {
+            background: #e8f5e8;
+            border-color: #2e7d32;
+        }
 
-    .video-controls .progress:hover {
-      height: 12px !important;
-    }
-  </style>
+        .video-thumbnail {
+            width: 80px;
+            height: 60px;
+            background: #ddd;
+            border-radius: 5px;
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #666;
+            font-size: 0.8rem;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .video-thumbnail video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .video-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .video-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 1rem;
+        }
+
+        .video-meta {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .video-actions {
+            display: flex;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .btn-small {
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            border-radius: 20px;
+        }
+
+        .btn-icon {
+            padding: 8px;
+            font-size: 0.9rem;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-loading {
+            background: #ccc !important;
+            cursor: not-allowed !important;
+            position: relative;
+        }
+
+        .btn-loading::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border: 2px solid transparent;
+            border-top: 2px solid #fff;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .no-videos {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .no-videos p {
+            margin-bottom: 20px;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            color: white;
+            opacity: 0.8;
+        }
+
+        .footer a {
+            color: white;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .btn-group {
+                flex-direction: column;
+            }
+            
+            .recorder-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .video-item {
+                flex-direction: column;
+                text-align: center;
+                padding: 20px;
+            }
+            
+            .video-thumbnail {
+                margin-right: 0;
+                margin-bottom: 15px;
+                width: 100px;
+                height: 75px;
+            }
+            
+            .video-actions {
+                margin-top: 15px;
+                justify-content: center;
+            }
+        }
+    </style>
 </head>
-<body class="bg-light">
-  <div class="app-container">
-    <!-- 控制面板 -->
-    <div class="control-panel">
-      <div class="d-flex gap-2">
-        <button id="startBtn" class="btn btn-primary flex-grow-1">
-          <i class="bi bi-play-fill"></i>
-          <span>开始录制</span>
-        </button>
-        <button id="stopBtn" class="btn btn-danger flex-grow-1" disabled>
-          <i class="bi bi-stop-fill"></i>
-          <span>停止录制</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- 录制列表 -->
-    <div id="recordedVideos" class="recorded-videos">
-      <!-- 录制的视频将在这里显示 -->
-    </div>
-  </div>
-
-  <!-- 视频预览模态框 -->
-  <div class="modal fade" id="videoModal" tabindex="-1" aria-labelledby="videoModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-fullscreen">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="videoModalLabel">视频预览</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>网页视频录制工具</h1>
+            <p>简单易用的网页视频录制解决方案</p>
         </div>
-        <div class="modal-body p-0 d-flex flex-column">
-          <div class="video-container flex-grow-1 bg-dark d-flex align-items-center justify-content-center">
-            <video id="modalVideo" class="w-100 h-100" style="object-fit: contain;"></video>
-          </div>
-          <div class="video-controls p-3 bg-light">
-            <div class="d-flex align-items-center gap-3">
-              <button id="playPauseBtn" class="btn btn-primary">
-                <i class="bi bi-play-fill"></i>
-              </button>
-              <select id="playbackRate" class="form-select" style="width: auto;">
-                <option value="0.5">0.5x</option>
-                <option value="1" selected>1x</option>
-                <option value="1.5">1.5x</option>
-                <option value="2">2x</option>
-              </select>
-              <div class="progress flex-grow-1" style="height: 8px;">
-                <div class="progress-bar" role="progressbar" style="width: 0%"></div>
-              </div>
+
+        <!-- 网页录制功能 -->
+        <div class="web-recorder">
+            <h2>在线录制功能</h2>
+            <p style="text-align: center; margin-bottom: 20px; color: #666;">
+                直接在浏览器中录制屏幕、摄像头或音频，无需安装任何软件
+            </p>
+            
+            <div class="recorder-status status-ready" id="status">
+                准备就绪 - 点击开始录制
             </div>
-          </div>
+            
+            <div class="recorder-controls">
+                <button class="btn" id="startBtn">开始录制</button>
+                <button class="btn btn-secondary" id="stopBtn" disabled>停止录制</button>
+            </div>
+            
+            <div class="video-container" id="videoContainer" style="display: none;">
+                <video id="preview" controls></video>
+            </div>
         </div>
-      </div>
+
+        <!-- 录制历史 -->
+        <div class="video-list">
+            <h3>录制历史</h3>
+            <div id="videoList">
+                <div class="no-videos">
+                    <p>暂无录制视频</p>
+                    <p>开始录制后，视频将显示在这里</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>© 2025 网页视频录制工具 | 
+                <a href="https://github.com/lijian316/record" target="_blank">GitHub</a> | 
+                <a href="privacy_policy.html" target="_blank">隐私政策</a>
+            </p>
+        </div>
     </div>
-  </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    class VideoRecorder {
-        constructor() {
-            this.mediaStream = null;
-            this.mediaRecorder = null;
-            this.recordedChunks = [];
-            this.recordings = [];
-            this.currentRecording = null;
-            this.startBtn = document.getElementById('startBtn');
-            this.stopBtn = document.getElementById('stopBtn');
-        }
+    <script>
+        let mediaRecorder;
+        let recordedChunks = [];
+        let isRecording = false;
+        let currentStream = null;
+        let videoList = [];
 
-        async requestPermission() {
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const status = document.getElementById('status');
+        const videoContainer = document.getElementById('videoContainer');
+        const preview = document.getElementById('preview');
+        const videoListContainer = document.getElementById('videoList');
+
+        startBtn.addEventListener('click', startRecording);
+        stopBtn.addEventListener('click', stopRecording);
+
+        // 页面加载时加载视频列表
+        loadVideoList();
+
+        async function startRecording() {
             try {
-                this.mediaStream = await navigator.mediaDevices.getDisplayMedia({
-                    video: true
+                const stream = await navigator.mediaDevices.getDisplayMedia({
+                    video: {
+                        cursor: "always"
+                    },
+                    audio: true
                 });
 
-                // 监听屏幕共享结束事件
-                this.mediaStream.getTracks().forEach(track => {
-                    track.addEventListener('ended', () => {
-                        console.log('Screen sharing stopped');
-                        this.handleStreamEnded();
-                    });
+                currentStream = stream;
+                mediaRecorder = new MediaRecorder(stream, {
+                    mimeType: 'video/webm;codecs=vp9'
                 });
 
-                return this.mediaStream;
-            } catch (err) {
-                throw new Error(`无法获取屏幕共享权限: ${err}`);
-            }
-        }
-
-        // 处理流结束事件
-        handleStreamEnded() {
-            if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
-                this.stopRecording();
-            }
-            
-            // 重置按钮状态
-            this.startBtn.disabled = false;
-            this.stopBtn.disabled = true;
-            
-            // 移除实时预览
-            if (this.currentRecording) {
-                const liveItem = document.getElementById(`video-${this.currentRecording.id}`);
-                if (liveItem) liveItem.remove();
-            }
-        }
-
-        initializeRecorder(stream, mimeType = 'video/webm;codecs=vp9') {
-            try {
-                this.mediaRecorder = new MediaRecorder(stream, { mimeType });
+                recordedChunks = [];
                 
-                this.mediaRecorder.ondataavailable = (event) => {
+                mediaRecorder.ondataavailable = (event) => {
                     if (event.data.size > 0) {
-                        this.recordedChunks.push(event.data);
+                        recordedChunks.push(event.data);
                     }
                 };
 
-                this.mediaRecorder.onstop = () => {
-                    if (this.recordedChunks.length > 0) {
-                        const blob = new Blob(this.recordedChunks, { type: mimeType });
-                        this.addRecording(blob);
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(recordedChunks, {
+                        type: 'video/webm'
+                    });
+                    const url = URL.createObjectURL(blob);
+                    preview.src = url;
+                    videoContainer.style.display = 'block';
+                    
+                    // 保存blob用于下载
+                    preview.dataset.blob = blob;
+
+                    // 添加到视频列表
+                    addVideoToList(blob);
+                };
+
+                // 监听流结束事件（用户点击停止分享）
+                stream.getVideoTracks()[0].onended = () => {
+                    console.log('用户停止了屏幕分享');
+                    if (isRecording) {
+                        stopRecording();
                     }
-                    this.cleanup();
                 };
-            } catch (err) {
-                throw new Error(`初始化录制器失败: ${err}`);
+
+                mediaRecorder.start();
+                isRecording = true;
+                
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+                
+                status.textContent = '正在录制中...';
+                status.className = 'recorder-status status-recording';
+                
+            } catch (error) {
+                console.error('录制失败:', error);
+                alert('录制失败: ' + error.message);
             }
         }
 
-        async startRecording() {
-            try {
-                const stream = await this.requestPermission();
-                this.initializeRecorder(stream);
-                this.recordedChunks = [];
-                this.mediaRecorder.start(1000);
+        function stopRecording() {
+            if (mediaRecorder && isRecording) {
+                mediaRecorder.stop();
                 
-                // 创建当前录制项
-                this.currentRecording = {
-                    id: Date.now(),
-                    timestamp: Date.now(),
-                    stream: stream
-                };
-                
-                // 显示实时预览
-                this.currentRecording.url = null;
-                this.displayRecording(this.currentRecording, true);
-                
-                // 更新按钮状态
-                this.startBtn.disabled = true;
-                this.stopBtn.disabled = false;
-
-                return true;
-            } catch (err) {
-                console.error(err);
-                this.handleStreamEnded();
-                return false;
-            }
-        }
-
-        stopRecording() {
-            if (!this.mediaRecorder || this.mediaRecorder.state === 'inactive') return;
-            
-            try {
-                this.mediaRecorder.stop();
-                this.mediaStream.getTracks().forEach(track => track.stop());
-                
-                // 更新按钮状态
-                this.startBtn.disabled = false;
-                this.stopBtn.disabled = true;
-                
-                // 移除实时预览
-                if (this.currentRecording) {
-                    const liveItem = document.getElementById(`video-${this.currentRecording.id}`);
-                    if (liveItem) liveItem.remove();
+                // 停止所有轨道
+                if (currentStream) {
+                    currentStream.getTracks().forEach(track => track.stop());
+                    currentStream = null;
                 }
-            } catch (err) {
-                console.error('停止录制时发生错误:', err);
-                this.handleStreamEnded();
-            }
-        }
-
-        addRecording(blob) {
-            const url = URL.createObjectURL(blob);
-            const timestamp = Date.now();
-            const recording = {
-                id: timestamp,
-                url,
-                blob,
-                timestamp
-            };
-            this.recordings.push(recording);
-            this.displayRecording(recording);
-        }
-
-        displayRecording(recording, isLive = false) {
-            const recordedVideos = document.getElementById('recordedVideos');
-            const videoItem = document.createElement('div');
-            videoItem.className = 'video-item';
-            videoItem.id = `video-${recording.id}`;
-
-            // 左侧预览区域
-            const previewSection = document.createElement('div');
-            previewSection.className = 'video-preview';
-            
-            const video = document.createElement('video');
-            if (isLive) {
-                video.srcObject = recording.stream;
-                video.muted = true;
-                video.autoplay = true;
-            } else {
-                video.src = recording.url;
-                video.muted = false;
-                const playButton = document.createElement('div');
-                playButton.className = 'play-button';
-                playButton.style.cursor = 'pointer';
-                playButton.style.zIndex = '10';
-                playButton.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    player.openModal(recording.url);
-                });
-                previewSection.appendChild(playButton);
-            }
-            previewSection.appendChild(video);
-
-            // 右侧信息区域
-            const infoSection = document.createElement('div');
-            infoSection.className = 'video-info';
-            
-            const timestamp = new Date(recording.timestamp).toLocaleString();
-            const formattedTime = new Date(recording.timestamp).toLocaleTimeString('zh-CN', {
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-            
-            infoSection.innerHTML = `
-                <h3>录制时间：${timestamp}</h3>
-                ${isLive ? '<p class="recording-status active">正在录制...</p>' : ''}
-                <div class="text-muted small">${formattedTime}</div>
-            `;
-
-            const actions = document.createElement('div');
-            actions.className = 'video-actions';
-
-            const downloadBtn = document.createElement('button');
-            downloadBtn.innerHTML = '<i class="bi bi-download"></i> 下载';
-            downloadBtn.onclick = (e) => {
-                e.stopPropagation();
-                this.downloadRecording(recording);
-            };
-
-            const downloadMP4Btn = document.createElement('button');
-            downloadMP4Btn.innerHTML = '<i class="bi bi-download"></i> 下载MP4';
-            downloadMP4Btn.onclick = (e) => {
-                e.stopPropagation();
-                this.downloadAsMP4(recording);
-            };
-
-            actions.appendChild(downloadBtn);
-            actions.appendChild(downloadMP4Btn);
-            infoSection.appendChild(actions);
-
-            videoItem.appendChild(previewSection);
-            videoItem.appendChild(infoSection);
-            
-            // 添加点击事件打开视频
-            videoItem.addEventListener('click', () => {
-                player.openModal(recording.url);
-            });
-
-            recordedVideos.insertBefore(videoItem, recordedVideos.firstChild);
-        }
-
-        downloadRecording(recording) {
-            const a = document.createElement('a');
-            a.href = recording.url;
-            a.download = `recording-${recording.timestamp}.webm`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-        }
-
-        async downloadAsMP4(recording) {
-            try {
-                // 创建一个临时的video元素来加载视频
-                const video = document.createElement('video');
-                video.src = recording.url;
                 
-                // 等待视频加载完成
-                await new Promise((resolve) => {
-                    video.onloadedmetadata = resolve;
+                isRecording = false;
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+                
+                status.textContent = '录制完成';
+                status.className = 'recorder-status status-ready';
+            }
+        }
+
+        function addVideoToList(blob) {
+            const videoItem = {
+                id: Date.now() + Math.random(),
+                name: `录制视频_${new Date().toLocaleString()}`,
+                blob: blob,
+                size: blob.size,
+                date: new Date().toISOString(),
+                url: URL.createObjectURL(blob),
+                converting: false
+            };
+
+            videoList.push(videoItem);
+            saveVideoList();
+            updateVideoListDisplay();
+        }
+
+        function updateVideoListDisplay() {
+            if (videoList.length === 0) {
+                videoListContainer.innerHTML = `
+                    <div class="no-videos">
+                        <p>暂无录制视频</p>
+                        <p>开始录制后，视频将显示在这里</p>
+                    </div>
+                `;
+                return;
+            }
+
+            videoListContainer.innerHTML = videoList.map(video => `
+                <div class="video-item" data-id="${video.id}" onclick="playVideo('${video.id}')">
+                    <div class="video-thumbnail">
+                        <video src="${video.url}" muted></video>
+                    </div>
+                    <div class="video-info">
+                        <div class="video-title">${video.name}</div>
+                        <div class="video-meta">
+                            ${formatFileSize(video.size)} • ${new Date(video.date).toLocaleString()}
+                        </div>
+                    </div>
+                    <div class="video-actions">
+                        <button class="btn btn-small" onclick="event.stopPropagation(); downloadVideoFromList('${video.id}', 'webm')" title="下载WebM格式">
+                            WebM
+                        </button>
+                        <button class="btn btn-small btn-success ${video.converting ? 'btn-loading' : ''}" 
+                                onclick="event.stopPropagation(); downloadVideoFromList('${video.id}', 'mp4')" 
+                                title="转换为MP4格式"
+                                ${video.converting ? 'disabled' : ''}>
+                            ${video.converting ? '转换中...' : 'MP4'}
+                        </button>
+                        <button class="btn btn-icon btn-secondary" onclick="event.stopPropagation(); deleteVideo('${video.id}')" title="删除">
+                            🗑️
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+
+            // 为缩略图视频添加事件监听
+            document.querySelectorAll('.video-thumbnail video').forEach(video => {
+                video.addEventListener('loadedmetadata', function() {
+                    // 设置视频到中间位置作为缩略图
+                    this.currentTime = this.duration / 2;
+                });
+            });
+        }
+
+        function playVideo(videoId) {
+            const video = videoList.find(v => v.id == videoId);
+            if (video) {
+                preview.src = video.url;
+                videoContainer.style.display = 'block';
+                preview.dataset.blob = video.blob;
+                
+                // 更新活动状态
+                document.querySelectorAll('.video-item').forEach(item => {
+                    item.classList.remove('active');
+                });
+                document.querySelector(`[data-id="${videoId}"]`).classList.add('active');
+            }
+        }
+
+        async function downloadVideoFromList(videoId, format) {
+            const video = videoList.find(v => v.id == videoId);
+            if (!video) return;
+
+            if (format === 'webm') {
+                // 直接下载WebM格式
+                const url = URL.createObjectURL(video.blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = video.name + '.webm';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            } else if (format === 'mp4') {
+                // 转换并下载MP4格式
+                await convertToMp4(video, videoId);
+            }
+        }
+
+        async function convertToMp4(video, videoId) {
+            try {
+                // 设置转换状态
+                video.converting = true;
+                updateVideoListDisplay();
+
+                // 创建视频元素
+                const videoElement = document.createElement('video');
+                videoElement.crossOrigin = 'anonymous';
+                videoElement.muted = true;
+                videoElement.playsInline = true;
+                
+                // 等待视频加载
+                await new Promise((resolve, reject) => {
+                    videoElement.onloadedmetadata = resolve;
+                    videoElement.onerror = reject;
+                    videoElement.src = video.url;
                 });
 
-                // 创建一个canvas元素
+                // 创建canvas
                 const canvas = document.createElement('canvas');
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
                 const ctx = canvas.getContext('2d');
+                canvas.width = videoElement.videoWidth;
+                canvas.height = videoElement.videoHeight;
 
-                // 创建MediaRecorder来录制MP4
-                const stream = canvas.captureStream();
+                // 创建MediaRecorder
+                const stream = canvas.captureStream(30); // 30fps
                 const mediaRecorder = new MediaRecorder(stream, {
-                    mimeType: 'video/mp4'
+                    mimeType: 'video/webm;codecs=vp9'
                 });
 
                 const chunks = [];
-                mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
-                mediaRecorder.onstop = () => {
-                    const blob = new Blob(chunks, { type: 'video/mp4' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `recording-${recording.timestamp}.mp4`;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        chunks.push(event.data);
+                    }
                 };
 
                 // 开始录制
                 mediaRecorder.start();
-                video.play();
+                videoElement.play();
 
-                // 逐帧绘制视频到canvas
+                // 绘制视频帧到canvas
                 const drawFrame = () => {
-                    if (video.ended || video.paused) {
-                        mediaRecorder.stop();
-                        return;
+                    if (!videoElement.paused && !videoElement.ended) {
+                        ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+                        requestAnimationFrame(drawFrame);
                     }
-                    ctx.drawImage(video, 0, 0);
-                    requestAnimationFrame(drawFrame);
                 };
                 drawFrame();
-            } catch (err) {
-                console.error('转换视频格式失败:', err);
-                alert('转换视频格式失败，请重试');
+
+                // 等待视频播放完成
+                await new Promise((resolve) => {
+                    videoElement.onended = () => {
+                        mediaRecorder.stop();
+                        resolve();
+                    };
+                });
+
+                // 等待录制完成
+                await new Promise((resolve) => {
+                    mediaRecorder.onstop = () => {
+                        const mp4Blob = new Blob(chunks, { type: 'video/mp4' });
+                        
+                        // 下载MP4文件
+                        const url = URL.createObjectURL(mp4Blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = video.name.replace('.webm', '.mp4');
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                        
+                        resolve();
+                    };
+                });
+
+                // 重置转换状态
+                video.converting = false;
+                updateVideoListDisplay();
+
+            } catch (error) {
+                console.error('MP4转换失败:', error);
+                alert('MP4转换失败，请尝试下载WebM格式');
+                
+                // 重置转换状态
+                video.converting = false;
+                updateVideoListDisplay();
             }
         }
 
-        async shareRecording(recording) {
-            try {
-                if (navigator.share) {
-                    const file = new File([recording.blob], `recording-${recording.timestamp}.webm`, {
-                        type: recording.blob.type
-                    });
-                    await navigator.share({
-                        title: '分享录制视频',
-                        files: [file]
-                    });
-                } else {
-                    alert('您的浏览器不支持分享功能');
+        function deleteVideo(videoId) {
+            if (confirm('确定要删除这个视频吗？')) {
+                const index = videoList.findIndex(v => v.id == videoId);
+                if (index > -1) {
+                    // 如果删除的是当前播放的视频，清除播放器
+                    if (preview.dataset.blob === videoList[index].blob) {
+                        clearVideo();
+                    }
+                    
+                    // 释放URL对象
+                    URL.revokeObjectURL(videoList[index].url);
+                    
+                    videoList.splice(index, 1);
+                    saveVideoList();
+                    updateVideoListDisplay();
                 }
-            } catch (err) {
-                console.error('分享失败:', err);
-                alert('分享失败');
             }
         }
 
-        cleanup() {
-            this.mediaStream?.getTracks().forEach(track => track.stop());
-            this.mediaStream = null;
-            this.mediaRecorder = null;
-        }
-    }
-
-    class VideoPlayer {
-        constructor() {
-            this.modal = new bootstrap.Modal(document.getElementById('videoModal'));
-            this.video = document.getElementById('modalVideo');
-            this.playPauseBtn = document.getElementById('playPauseBtn');
-            this.playbackRate = document.getElementById('playbackRate');
-            this.progressBar = document.querySelector('.progress');
-            this.progressFill = document.querySelector('.progress-bar');
-            
-            // 初始化基本控制
-            this.initializeControls();
-        }
-
-        initializeControls() {
-            // 播放/暂停控制
-            this.playPauseBtn.addEventListener('click', () => this.togglePlayPause());
-            
-            // 播放速度控制
-            this.playbackRate.addEventListener('change', (e) => {
-                this.video.playbackRate = parseFloat(e.target.value);
-            });
-            
-            // 进度条控制
-            this.progressBar.addEventListener('click', (e) => {
-                const rect = this.progressBar.getBoundingClientRect();
-                const pos = (e.clientX - rect.left) / rect.width;
-                this.video.currentTime = pos * this.video.duration;
-            });
-            
-            // 更新进度条
-            this.video.addEventListener('timeupdate', () => {
-                const progress = (this.video.currentTime / this.video.duration) * 100;
-                this.progressFill.style.width = `${progress}%`;
-            });
-        }
-
-        togglePlayPause() {
-            if (this.video.paused) {
-                this.video.play();
-                this.playPauseBtn.innerHTML = '<i class="bi bi-pause-fill"></i>';
-            } else {
-                this.video.pause();
-                this.playPauseBtn.innerHTML = '<i class="bi bi-play-fill"></i>';
+        function clearVideo() {
+            if (preview.src) {
+                URL.revokeObjectURL(preview.src);
+                preview.src = '';
+                videoContainer.style.display = 'none';
+                preview.dataset.blob = null;
+                
+                document.querySelectorAll('.video-item').forEach(item => {
+                    item.classList.remove('active');
+                });
             }
         }
 
-        openModal(videoUrl) {
-            console.log('Opening modal with URL:', videoUrl);
-            
-            // 重置视频源和状态
-            this.video.src = videoUrl;
-            this.video.currentTime = 0;
-            this.progressFill.style.width = '0%';
-            this.playPauseBtn.innerHTML = '<i class="bi bi-play-fill"></i>';
-            
-            // 显示模态框
-            this.modal.show();
-            
-            // 等待视频加载完成
-            this.video.addEventListener('loadedmetadata', () => {
-                console.log('Video metadata loaded');
-                this.video.play()
-                    .then(() => {
-                        console.log('Video started playing');
-                        this.playPauseBtn.innerHTML = '<i class="bi bi-pause-fill"></i>';
-                    })
-                    .catch(err => {
-                        console.error('播放失败:', err);
-                    });
-            }, { once: true });
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
         }
 
-        closeModal() {
-            this.video.pause();
-            this.modal.hide();
-            this.video.src = '';
+        function saveVideoList() {
+            // 注意：这里只保存元数据，不保存实际的blob数据
+            const metadata = videoList.map(video => ({
+                id: video.id,
+                name: video.name,
+                size: video.size,
+                date: video.date
+            }));
+            localStorage.setItem('videoList', JSON.stringify(metadata));
         }
-    }
 
-    const recorder = new VideoRecorder();
-    const player = new VideoPlayer();
-    const startBtn = document.getElementById('startBtn');
-    const stopBtn = document.getElementById('stopBtn');
-
-    startBtn.addEventListener('click', async () => {
-        startBtn.disabled = true;
-        if (await recorder.startRecording()) {
-            stopBtn.disabled = false;
-        } else {
-            startBtn.disabled = false;
+        function loadVideoList() {
+            const saved = localStorage.getItem('videoList');
+            if (saved) {
+                try {
+                    const metadata = JSON.parse(saved);
+                    // 注意：这里只能恢复元数据，实际的blob数据需要用户重新录制
+                    console.log('已保存的视频元数据:', metadata);
+                } catch (error) {
+                    console.error('加载视频列表失败:', error);
+                }
+            }
         }
-    });
 
-    stopBtn.addEventListener('click', () => {
-        recorder.stopRecording();
-        startBtn.disabled = false;
-        stopBtn.disabled = true;
-    });
-  </script>
+        function scrollToRecorder() {
+            document.querySelector('.web-recorder').scrollIntoView({
+                behavior: 'smooth'
+            });
+        }
+
+        // 检查浏览器兼容性
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia) {
+            alert('您的浏览器不支持屏幕录制功能，请使用Chrome、Firefox或Edge浏览器。');
+            startBtn.disabled = true;
+        }
+
+        // 页面卸载时清理资源
+        window.addEventListener('beforeunload', () => {
+            if (preview.src) {
+                URL.revokeObjectURL(preview.src);
+            }
+            videoList.forEach(video => {
+                URL.revokeObjectURL(video.url);
+            });
+        });
+    </script>
 </body>
 </html>

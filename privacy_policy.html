@@ -3,168 +3,256 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>网页视频录制器 - 隐私政策</title>
+    <title>隐私政策 - 网页视频录制工具</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
             line-height: 1.6;
+        }
+
+        .container {
             max-width: 800px;
             margin: 0 auto;
             padding: 20px;
-            color: #333;
-            background: #f8f9fa;
         }
-        .container {
-            background: white;
-            padding: 40px;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        h1 {
-            color: #2c3e50;
-            border-bottom: 3px solid #3498db;
-            padding-bottom: 15px;
+
+        .header {
             text-align: center;
+            margin-bottom: 40px;
+            color: white;
         }
-        h2 {
-            color: #34495e;
-            margin-top: 40px;
-            border-left: 4px solid #3498db;
-            padding-left: 15px;
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
-        h3 {
-            color: #2c3e50;
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .content {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+
+        .content h2 {
+            color: #667eea;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            margin-top: 30px;
+        }
+
+        .content h2:first-child {
+            margin-top: 0;
+        }
+
+        .content h3 {
+            color: #333;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
             margin-top: 25px;
         }
-        .highlight {
-            background: #e8f4fd;
-            padding: 20px;
-            border-left: 4px solid #3498db;
-            margin: 20px 0;
-            border-radius: 5px;
+
+        .content p {
+            margin-bottom: 15px;
+            color: #555;
         }
-        .contact {
-            background: #e8f5e8;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 25px 0;
-            border: 1px solid #c3e6c3;
-        }
-        ul {
+
+        .content ul {
+            margin-bottom: 15px;
             padding-left: 20px;
         }
-        li {
-            margin: 8px 0;
+
+        .content li {
+            margin-bottom: 8px;
+            color: #555;
         }
-        .important {
-            background: #fff3cd;
-            border: 1px solid #ffeaa7;
+
+        .highlight {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
             padding: 15px;
+            margin: 20px 0;
             border-radius: 5px;
+        }
+
+        .highlight strong {
+            color: #667eea;
+        }
+
+        .back-link {
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .back-link a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 12px 24px;
+            border: 2px solid white;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            display: inline-block;
+        }
+
+        .back-link a:hover {
+            background: white;
+            color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .contact-info {
+            background: #e8f5e8;
+            border: 1px solid #2e7d32;
+            border-radius: 10px;
+            padding: 20px;
             margin: 20px 0;
         }
-        .footer {
+
+        .contact-info h4 {
+            color: #2e7d32;
+            margin-bottom: 10px;
+        }
+
+        .last-updated {
             text-align: center;
-            margin-top: 40px;
+            color: #666;
+            font-style: italic;
+            margin-top: 30px;
             padding-top: 20px;
             border-top: 1px solid #eee;
-            color: #666;
         }
-        a {
-            color: #3498db;
-            text-decoration: none;
-        }
-        a:hover {
-            text-decoration: underline;
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .content h2 {
+                font-size: 1.5rem;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🎥 网页视频录制器 - 隐私政策</h1>
-        
-        <p style="text-align: center; color: #666;">
-            <strong>最后更新时间：</strong> 2024年12月
-        </p>
-
-        <h2>📋 概述</h2>
-        <p>网页视频录制器（以下简称"本插件"）是一款Chrome浏览器扩展程序，用于屏幕录制和视频管理。我们非常重视您的隐私保护，本隐私政策说明了我们如何收集、使用和保护您的信息。</p>
-
-        <h2>🔍 信息收集</h2>
-        <h3>我们收集的信息</h3>
-        <div class="highlight">
-            <strong>✅ 本插件不会收集、传输或存储您的个人信息。</strong><br>
-            所有录制的视频文件都保存在您的本地设备上，我们无法访问这些文件。
+        <div class="header">
+            <h1>隐私政策</h1>
+            <p>保护您的隐私是我们的首要任务</p>
         </div>
 
-        <h3>权限说明</h3>
-        <p>本插件需要以下权限才能正常工作：</p>
-        <ul>
-            <li><strong>desktopCapture</strong> - 用于屏幕录制功能</li>
-            <li><strong>storage</strong> - 用于在本地保存录制记录和设置</li>
-            <li><strong>downloads</strong> - 用于下载录制的视频文件</li>
-            <li><strong>host_permissions</strong> - 用于访问网页内容</li>
-        </ul>
-        <p>这些权限仅用于插件功能，不会用于收集个人信息。</p>
+        <div class="content">
+            <h2>隐私政策概述</h2>
+            <p>网页视频录制工具（以下简称"本工具"）非常重视您的隐私保护。本隐私政策说明了我们如何收集、使用和保护您的个人信息。</p>
 
-        <h2>💾 信息使用</h2>
-        <h3>本地存储</h3>
-        <ul>
-            <li>录制的视频文件保存在您的浏览器本地存储中</li>
-            <li>插件设置和录制记录也保存在本地</li>
-            <li>这些数据不会上传到任何服务器</li>
-        </ul>
+            <div class="highlight">
+                <strong>重要声明：</strong>本工具完全在您的本地设备上运行，所有录制的视频内容都存储在您的设备上，我们不会收集、上传或存储您的任何视频内容。
+            </div>
 
-        <h3>无网络传输</h3>
-        <ul>
-            <li>本插件不会向任何服务器发送数据</li>
-            <li>不会收集您的浏览历史、个人信息或其他敏感数据</li>
-            <li>所有功能都在本地执行</li>
-        </ul>
-
-        <h2>🛡️ 信息保护</h2>
-        <h3>本地安全</h3>
-        <ul>
-            <li>所有数据都存储在您的设备上</li>
-            <li>我们无法访问您的本地文件</li>
-            <li>您的隐私完全由您控制</li>
-        </ul>
-
-        <h3>数据删除</h3>
-        <ul>
-            <li>您可以随时删除录制的视频文件</li>
-            <li>卸载插件时，所有本地数据会被清除</li>
-            <li>您可以通过浏览器设置清除插件数据</li>
-        </ul>
-
-        <h2>🔗 第三方服务</h2>
-        <p>本插件<strong>不依赖</strong>任何第三方服务或API，所有功能都是独立的本地功能。</p>
-
-        <h2>👶 儿童隐私</h2>
-        <p>本插件不专门针对13岁以下的儿童。如果您是家长或监护人，并且知道您的孩子向我们提供了个人信息，请联系我们。</p>
-
-        <h2>📝 隐私政策更新</h2>
-        <p>我们可能会不时更新本隐私政策。更新后的政策将在此页面发布，并更新"最后更新时间"。</p>
-
-        <h2>📞 联系我们</h2>
-        <div class="contact">
-            <p>如果您对本隐私政策有任何疑问或建议，请通过以下方式联系我们：</p>
+            <h2>信息收集</h2>
+            <h3>我们收集什么信息？</h3>
+            <p>本工具收集的信息非常有限：</p>
             <ul>
-                <li>GitHub Issues: <a href="https://github.com/yourusername/web-video-recorder-extension/issues" target="_blank">提交问题</a></li>
-                <li>邮箱: your-email@example.com</li>
+                <li><strong>技术信息：</strong>浏览器类型、操作系统版本等基本技术信息</li>
+                <li><strong>使用统计：</strong>功能使用频率（可选，可关闭）</li>
+                <li><strong>错误日志：</strong>程序运行错误信息（用于改进产品）</li>
             </ul>
+
+            <h3>我们不收集什么？</h3>
+            <ul>
+                <li>录制的视频内容</li>
+                <li>个人身份信息</li>
+                <li>浏览历史记录</li>
+                <li>其他个人敏感信息</li>
+            </ul>
+
+            <h2>信息使用</h2>
+            <p>我们收集的信息仅用于：</p>
+            <ul>
+                <li>改进产品功能和用户体验</li>
+                <li>修复程序错误和问题</li>
+                <li>提供技术支持</li>
+                <li>确保工具正常运行</li>
+            </ul>
+
+            <h2>信息保护</h2>
+            <h3>本地存储</h3>
+            <p>所有录制的视频都存储在您的设备本地，使用浏览器的本地存储功能。我们无法访问这些内容。</p>
+
+            <h3>数据传输</h3>
+            <p>本工具不会将您的视频内容传输到任何服务器。所有处理都在您的设备上完成。</p>
+
+            <h3>安全措施</h3>
+            <ul>
+                <li>使用HTTPS加密传输（如果通过网站访问）</li>
+                <li>最小权限原则，只请求必要的权限</li>
+                <li>定期安全更新和漏洞修复</li>
+            </ul>
+
+            <h2>第三方服务</h2>
+            <p>本工具可能使用以下第三方服务：</p>
+            <ul>
+                <li><strong>Chrome Web Store：</strong>插件分发平台</li>
+                <li><strong>GitHub：</strong>代码托管和版本控制</li>
+            </ul>
+            <p>这些服务有自己的隐私政策，建议您查看相关条款。</p>
+
+            <h2>用户权利</h2>
+            <p>您拥有以下权利：</p>
+            <ul>
+                <li>随时删除本地存储的视频文件</li>
+                <li>禁用使用统计收集</li>
+                <li>卸载插件并清除所有数据</li>
+                <li>联系我们提出隐私相关问题</li>
+            </ul>
+
+            <h2>儿童隐私</h2>
+            <p>本工具不专门面向13岁以下儿童。如果您是家长或监护人，发现孩子提供了个人信息，请立即联系我们。</p>
+
+            <h2>隐私政策更新</h2>
+            <p>我们可能会不时更新本隐私政策。重大变更时，我们会：</p>
+            <ul>
+                <li>在工具中显示通知</li>
+                <li>更新版本说明</li>
+                <li>在GitHub仓库中发布更新</li>
+            </ul>
+
+            <div class="contact-info">
+                <h4>联系我们</h4>
+                <p>如果您对本隐私政策有任何疑问或建议，请通过以下方式联系我们：</p>
+                <ul>
+                    <li>GitHub Issues: <a href="https://github.com/your-username/web-video-recorder/issues" target="_blank">提交问题</a></li>
+                    <li>邮箱: privacy@webvideorecorder.com</li>
+                </ul>
+            </div>
+
+            <div class="last-updated">
+                最后更新时间：2024年12月
+            </div>
         </div>
 
-        <h2>✅ 同意</h2>
-        <p>使用本插件即表示您同意本隐私政策的条款。如果您不同意本政策，请不要使用本插件。</p>
-
-        <div class="important">
-            <strong>⚠️ 重要提醒：</strong> 本插件仅用于合法的屏幕录制目的。请确保您遵守当地法律法规，不要录制涉及他人隐私或商业机密的内容。
-        </div>
-
-        <div class="footer">
-            <p>感谢您使用网页视频录制器！</p>
-            <p>我们致力于保护您的隐私和数据安全。</p>
+        <div class="back-link">
+            <a href="index.html">返回主页</a>
         </div>
     </div>
 </body>
