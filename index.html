@@ -421,6 +421,16 @@
         // 页面加载时加载视频列表
         loadVideoList();
 
+        // 自动录制逻辑
+        window.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('auto') === '1') {
+                setTimeout(() => {
+                    if (!startBtn.disabled) startBtn.click();
+                }, 300);
+            }
+        });
+
         async function startRecording() {
             try {
                 const stream = await navigator.mediaDevices.getDisplayMedia({

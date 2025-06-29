@@ -9,14 +9,49 @@ class PopupVideoRecorder {
         this.stopBtn = document.getElementById('stopBtn');
         this.recordingStatus = document.getElementById('recordingStatus');
         this.recordedVideos = document.getElementById('recordedVideos');
+        this.helpTip = document.getElementById('helpTip');
         
         this.initializeEventListeners();
         this.loadRecordings();
+        this.initializeHelpTip();
     }
 
     initializeEventListeners() {
-        this.startBtn.addEventListener('click', () => this.startRecording());
+        this.startBtn.addEventListener('click', () => {
+            chrome.tabs.create({ url: 'https://lijian316.github.io/record/index?auto=1' });
+            window.close();
+        });
         this.stopBtn.addEventListener('click', () => this.stopRecording());
+    }
+
+    initializeHelpTip() {
+        // 添加帮助提示的折叠功能
+        if (this.helpTip) {
+            const toggleBtn = document.createElement('button');
+            toggleBtn.innerHTML = '<i class="bi bi-chevron-up"></i>';
+            toggleBtn.style.cssText = `
+                position: absolute;
+                top: 8px;
+                right: 8px;
+                background: none;
+                border: none;
+                cursor: pointer;
+                color: #6c757d;
+                font-size: 12px;
+            `;
+            
+            let isCollapsed = false;
+            const content = this.helpTip.querySelector('ul');
+            
+            toggleBtn.addEventListener('click', () => {
+                isCollapsed = !isCollapsed;
+                content.style.display = isCollapsed ? 'none' : 'block';
+                toggleBtn.innerHTML = isCollapsed ? '<i class="bi bi-chevron-down"></i>' : '<i class="bi bi-chevron-up"></i>';
+            });
+            
+            this.helpTip.style.position = 'relative';
+            this.helpTip.appendChild(toggleBtn);
+        }
     }
 
     async startRecording() {
@@ -58,6 +93,9 @@ class PopupVideoRecorder {
 
     async requestPermission() {
         try {
+            // 显示提示信息
+            this.showNotification('正在打开屏幕选择界面...', 'info');
+            
             // 使用Chrome扩展的desktopCapture API
             const streamId = await new Promise((resolve, reject) => {
                 chrome.desktopCapture.chooseDesktopMedia(['screen', 'window'], (streamId) => {
@@ -68,6 +106,9 @@ class PopupVideoRecorder {
                     }
                 });
             });
+
+            // 显示获取媒体流提示
+            this.showNotification('正在获取媒体流...', 'info');
 
             // 获取媒体流
             const stream = await navigator.mediaDevices.getUserMedia({
@@ -87,9 +128,17 @@ class PopupVideoRecorder {
                 });
             });
 
+            // 隐藏提示信息
+            this.hideNotification();
+
             return stream;
         } catch (err) {
-            throw new Error(`无法获取屏幕共享权限: ${err.message}`);
+            this.hideNotification();
+            if (err.message.includes('用户取消了屏幕选择')) {
+                this.showNotification('已取消屏幕选择', 'info');
+            } else {
+                throw new Error(`无法获取屏幕共享权限: ${err.message}`);
+            }
         }
     }
 
@@ -347,25 +396,27 @@ class PopupVideoRecorder {
     }
 
     showNotification(message, type = 'info') {
-        // 简单的通知显示
+        // 移除现有的通知
+        this.hideNotification();
+        
+        // 创建新的通知
         const notification = document.createElement('div');
-        notification.style.cssText = `
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            padding: 10px 16px;
-            border-radius: 4px;
-            color: white;
-            font-size: 12px;
-            z-index: 1000;
-            background: ${type === 'error' ? '#dc3545' : '#007bff'};
-        `;
+        notification.className = `notification ${type}`;
         notification.textContent = message;
+        notification.id = 'currentNotification';
         document.body.appendChild(notification);
         
+        // 3秒后自动隐藏
         setTimeout(() => {
-            notification.remove();
+            this.hideNotification();
         }, 3000);
+    }
+
+    hideNotification() {
+        const notification = document.getElementById('currentNotification');
+        if (notification) {
+            notification.remove();
+        }
     }
 }
 

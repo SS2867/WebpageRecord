@@ -8,8 +8,8 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
   <style>
     body {
-      width: 400px;
-      min-height: 500px;
+      width: 450px;
+      min-height: 600px;
       margin: 0;
       padding: 0;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -105,7 +105,7 @@
     }
 
     .recorded-videos {
-      max-height: 300px;
+      max-height: 350px;
       overflow-y: auto;
     }
 
@@ -204,6 +204,15 @@
       background: #e9ecef;
     }
 
+    .video-actions .btn-danger {
+      background: #dc3545;
+      color: white;
+    }
+
+    .video-actions .btn-danger:hover {
+      background: #c82333;
+    }
+
     .empty-state {
       text-align: center;
       padding: 40px 20px;
@@ -216,9 +225,74 @@
       opacity: 0.5;
     }
 
+    .empty-state h3 {
+      font-size: 16px;
+      margin-bottom: 8px;
+      color: #495057;
+    }
+
     .empty-state p {
-      margin: 0;
       font-size: 14px;
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    .notification {
+      position: fixed;
+      top: 16px;
+      right: 16px;
+      padding: 12px 16px;
+      border-radius: 6px;
+      color: white;
+      font-size: 14px;
+      z-index: 1000;
+      max-width: 300px;
+      word-wrap: break-word;
+    }
+
+    .notification.success {
+      background: #28a745;
+    }
+
+    .notification.error {
+      background: #dc3545;
+    }
+
+    .notification.info {
+      background: #17a2b8;
+    }
+
+    .help-tip {
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: #495057;
+    }
+
+    .help-tip h4 {
+      font-size: 14px;
+      margin: 0 0 8px;
+      color: #1a1a1a;
+      font-weight: 600;
+    }
+
+    .help-tip ul {
+      margin: 0;
+      padding-left: 16px;
+    }
+
+    .help-tip li {
+      margin-bottom: 4px;
+    }
+
+    .help-tip .highlight {
+      background: #fff3cd;
+      padding: 2px 4px;
+      border-radius: 3px;
+      font-weight: 500;
     }
 
     /* 滚动条样式 */
@@ -243,32 +317,41 @@
 </head>
 <body>
   <div class="popup-container">
-    <!-- 头部 -->
     <div class="header">
       <h1><i class="bi bi-camera-video"></i> 网页视频录制器</h1>
     </div>
 
-    <!-- 控制面板 -->
+    <!-- 使用说明 -->
+    <div class="help-tip" id="helpTip">
+      <h4><i class="bi bi-info-circle"></i> 使用说明</h4>
+      <ul>
+        <li>点击"开始录制"后，会弹出屏幕选择界面</li>
+        <li>选择要录制的<span class="highlight">屏幕</span>或<span class="highlight">窗口</span></li>
+        <li>如果界面显示不全，可以<span class="highlight">拖动窗口</span>或<span class="highlight">调整浏览器大小</span></li>
+        <li>录制过程中可以随时停止</li>
+      </ul>
+    </div>
+
     <div class="control-panel">
       <button id="startBtn" class="btn btn-primary">
-        <i class="bi bi-play-fill"></i>
-        <span>开始录制</span>
+        <i class="bi bi-record-circle"></i>
+        开始录制
       </button>
       <button id="stopBtn" class="btn btn-danger" disabled>
-        <i class="bi bi-stop-fill"></i>
-        <span>停止录制</span>
+        <i class="bi bi-stop-circle"></i>
+        停止录制
       </button>
       <div id="recordingStatus" class="recording-status" style="display: none;">
         <i class="bi bi-record-circle"></i>
-        <span>正在录制...</span>
+        正在录制...
       </div>
     </div>
 
-    <!-- 录制列表 -->
-    <div id="recordedVideos" class="recorded-videos">
+    <div class="recorded-videos" id="recordedVideos">
       <div class="empty-state">
         <i class="bi bi-camera-video-off"></i>
-        <p>暂无录制视频<br>点击"开始录制"开始录制屏幕</p>
+        <h3>暂无录制视频</h3>
+        <p>点击"开始录制"按钮开始录制屏幕</p>
       </div>
     </div>
   </div>
