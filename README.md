@@ -6,33 +6,32 @@
 
 ```
 网页视频录制/
-├── chrome-extension/     # Chrome扩展相关文件
-│   ├── manifest.json     # 扩展配置文件
-│   ├── popup.html        # 扩展弹窗界面
-│   ├── popup.js          # 弹窗逻辑
-│   ├── background.js     # 后台脚本
-│   ├── content.js        # 内容脚本
-│   ├── player.html       # 视频播放器页面
-│   ├── player.js         # 播放器逻辑
-│   ├── icons/            # 扩展图标
-│   ├── build_extension.js # 构建脚本
+├── index.html                    # 主页面（集成录制功能）
+├── privacy_policy.html           # 隐私政策页面
+├── chrome-extension/             # Chrome扩展相关文件
+│   ├── manifest.json             # 扩展配置文件
+│   ├── popup.html                # 扩展弹窗界面
+│   ├── popup.js                  # 弹窗逻辑
+│   ├── background.js             # 后台脚本
+│   ├── content.js                # 内容脚本
+│   ├── player.html               # 视频播放器页面
+│   ├── player.js                 # 播放器逻辑
+│   ├── icons/                    # 扩展图标
+│   ├── build_extension.js        # 构建脚本
 │   └── web-video-recorder-extension.zip # 打包文件
-├── web-app/              # 网页应用
-│   ├── index.html        # 主页面（集成录制功能）
-│   └── privacy_policy.html # 隐私政策页面
-├── docs/                 # 项目文档
-│   ├── README.md         # 详细说明文档
-│   ├── PRIVACY_POLICY.md # 隐私政策文档
-│   ├── PUBLISHING_GUIDE.md # 发布指南
-│   └── STORE_DESCRIPTION.md # 商店描述
-├── package.json          # 项目配置
-└── .gitignore           # Git忽略文件
+├── docs/                         # 项目文档
+│   ├── README.md                 # 详细说明文档
+│   ├── PRIVACY_POLICY.md         # 隐私政策文档
+│   ├── PUBLISHING_GUIDE.md       # 发布指南
+│   └── STORE_DESCRIPTION.md      # 商店描述
+├── package.json                  # 项目配置
+└── .gitignore                   # Git忽略文件
 ```
 
 ## 🚀 快速开始
 
 ### 使用网页应用
-1. 打开 `web-app/index.html` 即可直接使用录制功能
+1. 打开 `index.html` 即可直接使用录制功能
 2. 支持屏幕录制、摄像头录制、音频录制
 3. 可预览和下载录制的视频
 
@@ -57,7 +56,7 @@
 - 在Chrome扩展管理页面重新加载
 
 ### 网页应用开发
-- 修改 `web-app/` 目录下的文件
+- 修改根目录下的 `index.html` 和 `privacy_policy.html`
 - 直接在浏览器中打开测试
 
 ## 📖 详细文档

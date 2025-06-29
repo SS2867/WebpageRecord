@@ -15,27 +15,26 @@
 
 ```
 网页视频录制/
-├── chrome-extension/     # Chrome扩展相关文件
-│   ├── manifest.json     # 扩展配置文件
-│   ├── popup.html        # 扩展弹窗界面
-│   ├── popup.js          # 弹窗逻辑
-│   ├── background.js     # 后台脚本
-│   ├── content.js        # 内容脚本
-│   ├── player.html       # 视频播放器页面
-│   ├── player.js         # 播放器逻辑
-│   ├── icons/            # 扩展图标
-│   ├── build_extension.js # 构建脚本
+├── index.html                    # 主页面（集成录制功能）
+├── privacy_policy.html           # 隐私政策页面
+├── chrome-extension/             # Chrome扩展相关文件
+│   ├── manifest.json             # 扩展配置文件
+│   ├── popup.html                # 扩展弹窗界面
+│   ├── popup.js                  # 弹窗逻辑
+│   ├── background.js             # 后台脚本
+│   ├── content.js                # 内容脚本
+│   ├── player.html               # 视频播放器页面
+│   ├── player.js                 # 播放器逻辑
+│   ├── icons/                    # 扩展图标
+│   ├── build_extension.js        # 构建脚本
 │   └── web-video-recorder-extension.zip # 打包文件
-├── web-app/              # 网页应用
-│   ├── index.html        # 主页面（集成录制功能）
-│   └── privacy_policy.html # 隐私政策页面
-├── docs/                 # 项目文档
-│   ├── README.md         # 详细说明文档
-│   ├── PRIVACY_POLICY.md # 隐私政策文档
-│   ├── PUBLISHING_GUIDE.md # 发布指南
-│   └── STORE_DESCRIPTION.md # 商店描述
-├── package.json          # 项目配置
-└── .gitignore           # Git忽略文件
+├── docs/                         # 项目文档
+│   ├── README.md                 # 详细说明文档
+│   ├── PRIVACY_POLICY.md         # 隐私政策文档
+│   ├── PUBLISHING_GUIDE.md       # 发布指南
+│   └── STORE_DESCRIPTION.md      # 商店描述
+├── package.json                  # 项目配置
+└── .gitignore                   # Git忽略文件
 ```
 
 ## 🚀 使用方式
@@ -43,7 +42,7 @@
 ### 1. 网页版（推荐）
 直接在浏览器中使用，无需安装任何软件：
 
-1. 访问 [网页版录制工具](../web-app/index.html)
+1. 访问 [网页版录制工具](../index.html)
 2. 点击"开始录制"按钮
 3. 选择要录制的屏幕或窗口
 4. 录制完成后点击"停止录制"
@@ -125,7 +124,7 @@ npm run build
 - `privacy_policy.html`: 隐私政策页面
 
 #### 开发流程
-1. 修改 `web-app/` 目录下的文件
+1. 修改根目录下的 `index.html` 和 `privacy_policy.html`
 2. 直接在浏览器中打开测试
 3. 使用本地服务器进行开发（推荐）
 
@@ -137,7 +136,7 @@ python -m http.server 8000
 # 或使用Node.js
 npx http-server -p 8000
 
-# 然后访问 http://localhost:8000/web-app/
+# 然后访问 http://localhost:8000/
 ```
 
 ## 📖 使用指南
