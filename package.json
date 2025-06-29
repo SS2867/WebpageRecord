@@ -2,9 +2,9 @@
   "name": "web-video-recorder-extension",
   "version": "1.0.0",
   "description": "A Chrome extension for screen recording and video management",
-  "main": "popup.js",
+  "main": "chrome-extension/popup.js",
   "scripts": {
-    "build": "node build_extension.js",
+    "build": "cd chrome-extension && node build_extension.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "echo \"Linting not configured\"",
     "icons": "echo \"Please use create_icons.html to generate icons\""
@@ -33,16 +33,9 @@
     "node": ">=14.0.0"
   },
   "files": [
-    "manifest.json",
-    "popup.html",
-    "popup.js",
-    "background.js",
-    "content.js",
-    "player.html",
-    "player.js",
-    "icons/",
-    "README.md",
-    "PRIVACY_POLICY.md"
+    "chrome-extension/",
+    "web-app/",
+    "docs/"
   ],
   "chrome": {
     "minimum_version": "88.0"

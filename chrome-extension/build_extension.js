@@ -29,8 +29,7 @@ function createReleasePackage() {
         'background.js',
         'content.js',
         'player.html',
-        'player.js',
-        'README.md'
+        'player.js'
     ];
 
     // 添加图标文件夹
