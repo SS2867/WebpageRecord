@@ -27,9 +27,10 @@ function createReleasePackage() {
         'popup.html',
         'popup.js',
         'background.js',
-        'content.js',
         'player.html',
-        'player.js'
+        'player.js',
+        'index.html',
+        'index.js'
     ];
 
     // 添加图标文件夹
@@ -54,9 +55,10 @@ function checkRequiredFiles() {
         'popup.html',
         'popup.js',
         'background.js',
-        'content.js',
         'player.html',
-        'player.js'
+        'player.js',
+        'index.html',
+        'index.js'
     ];
 
     const missingFiles = [];
