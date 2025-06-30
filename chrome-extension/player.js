@@ -1,194 +1,262 @@
 class VideoPlayer {
     constructor() {
         this.video = document.getElementById('videoPlayer');
-        this.playPauseBtn = document.getElementById('playPauseBtn');
+        this.videoTitle = document.getElementById('videoTitle');
+        this.videoMeta = document.getElementById('videoMeta');
+        this.loading = document.getElementById('loading');
+        this.error = document.getElementById('error');
+        this.controls = document.getElementById('controls');
         this.progressBar = document.getElementById('progressBar');
         this.progressFill = document.getElementById('progressFill');
+        this.playBtn = document.getElementById('playBtn');
         this.timeDisplay = document.getElementById('timeDisplay');
-        this.playbackRate = document.getElementById('playbackRate');
-        this.muteBtn = document.getElementById('muteBtn');
-        this.volumeSlider = document.getElementById('volumeSlider');
         this.fullscreenBtn = document.getElementById('fullscreenBtn');
-        this.loading = document.getElementById('loading');
-        this.errorMessage = document.getElementById('errorMessage');
+        this.closeBtn = document.getElementById('closeBtn');
+        this.centerPlayBtn = document.getElementById('centerPlayBtn');
+        
+        this.videoData = null;
+        this.isPlaying = false;
+        this.videoLoaded = false;
         
         this.initializeEventListeners();
-        this.loadVideoFromURL();
-    }
-
-    initializeEventListeners() {
-        // 播放/暂停控制
-        this.playPauseBtn.addEventListener('click', () => this.togglePlayPause());
-        this.video.addEventListener('click', () => this.togglePlayPause());
         
-        // 播放速度控制
-        this.playbackRate.addEventListener('change', (e) => {
-            this.video.playbackRate = parseFloat(e.target.value);
+        // 显示加载状态
+        this.videoTitle.textContent = '正在加载视频...';
+        
+        // 从存储中加载视频数据
+        this.loadVideoFromStorage();
+    }
+    
+    initializeEventListeners() {
+        // 播放/暂停按钮
+        this.playBtn.addEventListener('click', () => {
+            this.togglePlay();
         });
         
-        // 进度条控制
+        // 中央播放按钮
+        this.centerPlayBtn.addEventListener('click', () => {
+            this.togglePlay();
+        });
+        
+        // 视频点击播放/暂停
+        this.video.addEventListener('click', () => {
+            this.togglePlay();
+        });
+        
+        // 视频播放/暂停事件
+        this.video.addEventListener('play', () => {
+            this.isPlaying = true;
+            this.playBtn.textContent = '⏸';
+            this.centerPlayBtn.classList.remove('show');
+        });
+        
+        this.video.addEventListener('pause', () => {
+            this.isPlaying = false;
+            this.playBtn.textContent = '▶';
+            this.centerPlayBtn.classList.add('show');
+        });
+        
+        // 进度条点击
         this.progressBar.addEventListener('click', (e) => {
             const rect = this.progressBar.getBoundingClientRect();
-            const pos = (e.clientX - rect.left) / rect.width;
-            this.video.currentTime = pos * this.video.duration;
+            const percent = (e.clientX - rect.left) / rect.width;
+            this.video.currentTime = percent * this.video.duration;
         });
         
-        // 音量控制
-        this.muteBtn.addEventListener('click', () => this.toggleMute());
-        this.volumeSlider.addEventListener('input', (e) => {
-            this.video.volume = e.target.value / 100;
-            this.updateMuteButton();
+        // 视频时间更新
+        this.video.addEventListener('timeupdate', () => {
+            this.updateProgress();
+            this.updateTimeDisplay();
         });
         
-        // 全屏控制
-        this.fullscreenBtn.addEventListener('click', () => this.toggleFullscreen());
+        // 视频加载完成
+        this.video.addEventListener('loadedmetadata', () => {
+            this.loading.style.display = 'none';
+            this.updateTimeDisplay();
+            // 初始状态显示中央播放按钮
+            this.centerPlayBtn.classList.add('show');
+        });
         
-        // 视频事件
-        this.video.addEventListener('timeupdate', () => this.updateProgress());
-        this.video.addEventListener('loadedmetadata', () => this.onVideoLoaded());
-        this.video.addEventListener('ended', () => this.onVideoEnded());
-        this.video.addEventListener('error', () => this.onVideoError());
+        // 视频加载错误
+        this.video.addEventListener('error', () => {
+            this.loading.style.display = 'none';
+            this.error.style.display = 'block';
+        });
+        
+        // 添加更多事件监听器来调试
+        this.video.addEventListener('loadstart', () => {
+            console.log('视频开始加载');
+        });
+        
+        this.video.addEventListener('canplay', () => {
+            console.log('视频可以播放');
+            this.loading.style.display = 'none';
+        });
+        
+        this.video.addEventListener('canplaythrough', () => {
+            console.log('视频可以流畅播放');
+        });
+        
+        this.video.addEventListener('loadeddata', () => {
+            console.log('视频数据已加载');
+            this.updateTimeDisplay(); // 再次更新时长显示
+        });
+        
+        this.video.addEventListener('error', (e) => {
+            console.error('视频加载错误:', e);
+            this.loading.style.display = 'none';
+            this.error.style.display = 'block';
+        });
+        
+        // 全屏按钮
+        this.fullscreenBtn.addEventListener('click', () => {
+            this.toggleFullscreen();
+        });
+        
+        // 关闭按钮
+        this.closeBtn.addEventListener('click', () => {
+            window.close();
+        });
         
         // 键盘快捷键
-        document.addEventListener('keydown', (e) => this.handleKeyboard(e));
-    }
-
-    loadVideoFromURL() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const videoUrl = urlParams.get('video');
-        
-        if (videoUrl) {
-            this.video.src = decodeURIComponent(videoUrl);
-            this.video.load();
-        } else {
-            this.showError('未找到视频文件');
-        }
-    }
-
-    togglePlayPause() {
-        if (this.video.paused) {
-            this.video.play();
-            this.playPauseBtn.innerHTML = '<i class="bi bi-pause-fill"></i>';
-        } else {
-            this.video.pause();
-            this.playPauseBtn.innerHTML = '<i class="bi bi-play-fill"></i>';
-        }
-    }
-
-    updateProgress() {
-        if (this.video.duration) {
-            const progress = (this.video.currentTime / this.video.duration) * 100;
-            this.progressFill.style.width = `${progress}%`;
-            this.updateTimeDisplay();
-        }
-    }
-
-    updateTimeDisplay() {
-        const currentTime = this.formatTime(this.video.currentTime);
-        const duration = this.formatTime(this.video.duration);
-        this.timeDisplay.textContent = `${currentTime} / ${duration}`;
-    }
-
-    formatTime(seconds) {
-        if (isNaN(seconds)) return '00:00';
-        
-        const minutes = Math.floor(seconds / 60);
-        const remainingSeconds = Math.floor(seconds % 60);
-        return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-    }
-
-    toggleMute() {
-        this.video.muted = !this.video.muted;
-        this.updateMuteButton();
-    }
-
-    updateMuteButton() {
-        if (this.video.muted || this.video.volume === 0) {
-            this.muteBtn.innerHTML = '<i class="bi bi-volume-mute"></i>';
-        } else if (this.video.volume < 0.5) {
-            this.muteBtn.innerHTML = '<i class="bi bi-volume-down"></i>';
-        } else {
-            this.muteBtn.innerHTML = '<i class="bi bi-volume-up"></i>';
-        }
-    }
-
-    toggleFullscreen() {
-        if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen();
-            this.fullscreenBtn.innerHTML = '<i class="bi bi-fullscreen-exit"></i>';
-        } else {
-            document.exitFullscreen();
-            this.fullscreenBtn.innerHTML = '<i class="bi bi-fullscreen"></i>';
-        }
-    }
-
-    handleKeyboard(e) {
-        switch (e.code) {
-            case 'Space':
-                e.preventDefault();
-                this.togglePlayPause();
-                break;
-            case 'ArrowLeft':
-                e.preventDefault();
-                this.video.currentTime = Math.max(0, this.video.currentTime - 10);
-                break;
-            case 'ArrowRight':
-                e.preventDefault();
-                this.video.currentTime = Math.min(this.video.duration, this.video.currentTime + 10);
-                break;
-            case 'ArrowUp':
-                e.preventDefault();
-                this.video.volume = Math.min(1, this.video.volume + 0.1);
-                this.volumeSlider.value = this.video.volume * 100;
-                this.updateMuteButton();
-                break;
-            case 'ArrowDown':
-                e.preventDefault();
-                this.video.volume = Math.max(0, this.video.volume - 0.1);
-                this.volumeSlider.value = this.video.volume * 100;
-                this.updateMuteButton();
-                break;
-            case 'KeyM':
-                e.preventDefault();
-                this.toggleMute();
-                break;
-            case 'KeyF':
-                e.preventDefault();
-                this.toggleFullscreen();
-                break;
-        }
-    }
-
-    onVideoLoaded() {
-        this.loading.style.display = 'none';
-        this.errorMessage.style.display = 'none';
-        this.updateTimeDisplay();
-        this.updateMuteButton();
-        
-        // 自动播放
-        this.video.play().then(() => {
-            this.playPauseBtn.innerHTML = '<i class="bi bi-pause-fill"></i>';
-        }).catch(err => {
-            console.log('自动播放失败:', err);
+        document.addEventListener('keydown', (e) => {
+            switch(e.code) {
+                case 'Space':
+                    e.preventDefault();
+                    this.togglePlay();
+                    break;
+                case 'Escape':
+                    if (document.fullscreenElement) {
+                        document.exitFullscreen();
+                    }
+                    break;
+                case 'KeyF':
+                    this.toggleFullscreen();
+                    break;
+            }
         });
     }
-
-    onVideoEnded() {
-        this.playPauseBtn.innerHTML = '<i class="bi bi-play-fill"></i>';
+    
+    async loadVideoFromStorage() {
+        try {
+            const result = await chrome.storage.local.get(['tempVideoData']);
+            
+            if (result.tempVideoData) {
+                this.loadVideoFromData(result.tempVideoData);
+                // 清除临时数据
+                chrome.storage.local.remove(['tempVideoData']);
+            } else {
+                this.showError('未找到视频数据');
+            }
+        } catch (error) {
+            console.error('加载视频数据失败:', error);
+            this.showError('加载视频数据失败');
+        }
     }
-
-    onVideoError() {
-        this.loading.style.display = 'none';
-        this.showError('视频加载失败');
+    
+    loadVideoFromData(videoData) {
+        console.log('加载视频数据:', videoData);
+        
+        if (!videoData || !videoData.blobData) {
+            this.showError('未找到视频数据');
+            return;
+        }
+        
+        // 设置视频信息
+        this.videoTitle.textContent = videoData.title || '录制视频';
+        
+        if (videoData.timestamp) {
+            const date = new Date(parseInt(videoData.timestamp));
+            this.videoMeta.textContent = date.toLocaleString();
+        }
+        
+        try {
+            // 将 base64 转换为 Blob
+            const byteString = atob(videoData.blobData.split(',')[1]);
+            const mimeString = videoData.blobData.split(',')[0].split(':')[1].split(';')[0];
+            const ab = new ArrayBuffer(byteString.length);
+            const ia = new Uint8Array(ab);
+            for (let i = 0; i < byteString.length; i++) {
+                ia[i] = byteString.charCodeAt(i);
+            }
+            const blob = new Blob([ab], { type: mimeString });
+            const blobUrl = URL.createObjectURL(blob);
+            
+            console.log('创建Blob URL:', blobUrl);
+            
+            // 加载视频
+            this.video.src = blobUrl;
+            this.video.load();
+            
+            // 保存blob URL用于下载
+            this.videoBlobUrl = blobUrl;
+            this.videoLoaded = true;
+            
+        } catch (error) {
+            console.error('创建Blob URL失败:', error);
+            this.showError('视频数据格式错误');
+            return;
+        }
     }
-
+    
+    togglePlay() {
+        if (this.video.paused) {
+            this.video.play();
+        } else {
+            this.video.pause();
+        }
+    }
+    
+    updateProgress() {
+        if (this.video.duration) {
+            const percent = (this.video.currentTime / this.video.duration) * 100;
+            this.progressFill.style.width = percent + '%';
+        }
+    }
+    
+    updateTimeDisplay() {
+        const current = this.formatTime(this.video.currentTime);
+        const total = this.formatTime(this.video.duration);
+        
+        // 检查时长是否有效
+        if (isNaN(this.video.duration) || !isFinite(this.video.duration) || this.video.duration <= 0) {
+            this.timeDisplay.textContent = current;
+        } else {
+            this.timeDisplay.textContent = `${current} / ${total}`;
+        }
+    }
+    
+    formatTime(seconds) {
+        if (isNaN(seconds) || !isFinite(seconds) || seconds < 0) return '00:00';
+        
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = Math.floor(seconds % 60);
+        
+        if (h > 0) {
+            return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        } else {
+            return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
+    }
+    
+    toggleFullscreen() {
+        if (!document.fullscreenElement) {
+            this.video.requestFullscreen();
+        } else {
+            document.exitFullscreen();
+        }
+    }
+    
     showError(message) {
-        this.errorMessage.innerHTML = `<i class="bi bi-exclamation-triangle"></i><br>${message}`;
-        this.errorMessage.style.display = 'block';
+        this.loading.style.display = 'none';
+        this.error.style.display = 'block';
+        this.error.querySelector('p').textContent = message;
     }
 }
 
 // 初始化播放器
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('播放器页面加载完成');
     new VideoPlayer();
 }); 

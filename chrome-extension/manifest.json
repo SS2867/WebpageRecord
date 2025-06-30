@@ -1,16 +1,16 @@
 {
   "manifest_version": 3,
-  "name": "网页视频录制器",
+  "name": "网页视频录制插件",
   "version": "1.0.0",
-  "description": "一个简单易用的网页视频录制工具，支持屏幕录制和视频预览",
-  "permissions": [
-    "desktopCapture",
-    "storage",
-    "downloads"
-  ],
+  "description": "屏幕录制控制器，支持开始、暂停、停止和时长显示。",
+  "permissions": ["storage", "tabs", "scripting", "activeTab", "desktopCapture", "downloads"],
+  "host_permissions": ["<all_urls>"],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
   "action": {
     "default_popup": "popup.html",
-    "default_title": "网页视频录制器",
     "default_icon": {
       "16": "icons/icon16.png",
       "32": "icons/icon32.png",
@@ -18,13 +18,16 @@
       "128": "icons/icon128.png"
     }
   },
-  "background": {
-    "service_worker": "background.js"
-  },
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
-  }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["player.html", "player.js", "index.html", "index.js"],
+      "matches": ["<all_urls>"]
+    }
+  ]
 } 

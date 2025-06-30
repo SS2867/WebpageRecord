@@ -2,360 +2,401 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>网页视频录制器</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+  <title>录制控制器</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
   <style>
-    body {
-      width: 450px;
-      min-height: 600px;
+    body { 
+      width: 320px; 
+      min-height: 400px; 
+      max-height: 600px;
+      display: flex; 
+      flex-direction: column; 
+      font-family: sans-serif; 
+      background: #f8f9fa; 
       margin: 0;
       padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
-
-    .popup-container {
-      padding: 16px;
-    }
-
+    
     .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 15px;
       text-align: center;
-      margin-bottom: 20px;
-      padding-bottom: 16px;
-      border-bottom: 1px solid #e9ecef;
     }
-
-    .header h1 {
-      font-size: 18px;
+    
+    .header h2 {
       margin: 0;
-      color: #1a1a1a;
+      font-size: 1.2rem;
       font-weight: 600;
     }
-
-    .control-panel {
-      background: #fff;
-      padding: 16px;
-      border-radius: 8px;
-      margin-bottom: 16px;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-      border: 1px solid #e9ecef;
+    
+    .controls-section {
+      padding: 15px;
+      background: white;
+      border-bottom: 1px solid #eee;
     }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
+    
+    .timer { 
+      font-size: 2rem; 
+      font-weight: bold; 
+      margin: 10px 0; 
+      color: #333; 
+      letter-spacing: 2px; 
+      text-align: center;
+    }
+    
+    .controls { 
+      display: flex; 
+      gap: 15px; 
+      margin-bottom: 10px; 
       justify-content: center;
-      gap: 8px;
-      padding: 10px 16px;
-      font-size: 14px;
-      border-radius: 6px;
+    }
+    
+    .ctrl-btn { 
+      width: 50px; 
+      height: 50px; 
+      border-radius: 50%; 
+      border: none; 
+      background: #fff; 
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1); 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      font-size: 1.5rem; 
+      color: #667eea; 
+      cursor: pointer; 
+      transition: all 0.2s; 
+    }
+    
+    .ctrl-btn:active { 
+      background: #e0e7ff; 
+      transform: scale(0.95);
+    }
+    
+    .ctrl-btn[disabled] { 
+      opacity: 0.5; 
+      cursor: not-allowed; 
+    }
+    
+    .ctrl-btn.start { color: #43b581; }
+    .ctrl-btn.pause { color: #fbbf24; }
+    .ctrl-btn.stop { color: #ef4444; }
+    
+    .status-text { 
+      font-size: 0.9rem; 
+      color: #666; 
+      margin-bottom: 8px; 
+      text-align: center; 
+    }
+    
+    .history-section {
+      flex: 1;
+      overflow-y: auto;
+      padding: 15px;
+      background: #f8f9fa;
+    }
+    
+    .history-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #ddd;
+    }
+    
+    .history-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #333;
+    }
+    
+    .history-actions {
+      display: flex;
+      gap: 5px;
+    }
+    
+    .refresh-btn {
+      background: none;
       border: none;
       cursor: pointer;
-      transition: all 0.2s;
-      width: 100%;
-      margin-bottom: 8px;
-    }
-
-    .btn:last-child {
-      margin-bottom: 0;
-    }
-
-    .btn-primary {
-      background: #007bff;
-      color: white;
-    }
-
-    .btn-primary:hover {
-      background: #0056b3;
-    }
-
-    .btn-danger {
-      background: #dc3545;
-      color: white;
-    }
-
-    .btn-danger:hover {
-      background: #c82333;
-    }
-
-    .btn:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-    }
-
-    .recording-status {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 12px;
-      background: #e9ecef;
-      border-radius: 16px;
-      font-size: 12px;
-      margin-top: 8px;
-    }
-
-    .recording-status.active {
-      background: #dc3545;
-      color: white;
-    }
-
-    .recording-status i {
-      font-size: 14px;
-    }
-
-    .recorded-videos {
-      max-height: 350px;
-      overflow-y: auto;
-    }
-
-    .video-item {
-      display: flex;
-      gap: 12px;
-      padding: 12px;
-      border-radius: 8px;
-      background: #fff;
-      margin-bottom: 8px;
-      cursor: pointer;
-      border: 1px solid #e9ecef;
-      transition: all 0.2s;
-    }
-
-    .video-item:hover {
-      border-color: #007bff;
-      box-shadow: 0 2px 8px rgba(0,123,255,0.1);
-    }
-
-    .video-preview {
-      width: 80px;
-      height: 45px;
+      padding: 4px;
       border-radius: 4px;
-      overflow: hidden;
-      position: relative;
-      flex-shrink: 0;
-      background: #000;
+      font-size: 0.8rem;
+      transition: background 0.2s;
     }
-
-    .video-preview video {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
+    
+    .refresh-btn:hover {
+      background: #f0f0f0;
     }
-
-    .play-button {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 24px;
-      height: 24px;
-      background: rgba(0, 0, 0, 0.7);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    
+    .clear-btn {
+      background: none;
+      border: none;
+      color: #ef4444;
       cursor: pointer;
-      z-index: 10;
+      font-size: 0.8rem;
+      padding: 5px 10px;
+      border-radius: 15px;
+      transition: background 0.2s;
     }
-
-    .play-button::after {
-      content: '';
-      border-style: solid;
-      border-width: 6px 0 6px 8px;
-      border-color: transparent transparent transparent white;
-      margin-left: 1px;
+    
+    .clear-btn:hover {
+      background: #fee2e2;
     }
-
-    .video-info {
-      flex: 1;
-      min-width: 0;
+    
+    .video-item {
+      background: white;
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      cursor: pointer;
+      transition: all 0.2s;
     }
-
-    .video-info h3 {
-      font-size: 12px;
-      margin: 0 0 4px;
-      color: #1a1a1a;
-      font-weight: 500;
+    
+    .video-item:hover {
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+      transform: translateY(-1px);
     }
-
-    .video-info .time {
-      font-size: 11px;
-      color: #6c757d;
+    
+    .video-title {
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: #333;
+      margin-bottom: 6px;
+      line-height: 1.3;
     }
-
+    
+    .video-meta {
+      font-size: 0.75rem;
+      color: #666;
+      margin-bottom: 8px;
+    }
+    
     .video-actions {
       display: flex;
-      gap: 4px;
-      margin-top: 8px;
+      gap: 6px;
+      justify-content: flex-start;
     }
-
-    .video-actions button {
-      padding: 4px 8px;
+    
+    .action-btn {
+      background: none;
       border: none;
-      border-radius: 4px;
-      background: #f8f9fa;
-      color: #495057;
-      font-size: 11px;
       cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .video-actions button:hover {
-      background: #e9ecef;
-    }
-
-    .video-actions .btn-danger {
-      background: #dc3545;
-      color: white;
-    }
-
-    .video-actions .btn-danger:hover {
-      background: #c82333;
-    }
-
-    .empty-state {
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      transition: background 0.2s;
+      min-width: 28px;
       text-align: center;
-      padding: 40px 20px;
-      color: #6c757d;
     }
-
-    .empty-state i {
-      font-size: 48px;
-      margin-bottom: 16px;
+    
+    .download-webm {
+      background: #e3f2fd;
+      color: #1976d2;
+    }
+    
+    .download-webm:hover {
+      background: #bbdefb;
+    }
+    
+    .download-mp4 {
+      background: #f3e5f5;
+      color: #7b1fa2;
+    }
+    
+    .download-mp4:hover {
+      background: #e1bee7;
+    }
+    
+    .download-mp4.converting {
+      background: #e8eaf6;
+      color: #3f51b5;
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+    
+    .download-mp4.converting::after {
+      content: '';
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border: 2px solid #3f51b5;
+      border-radius: 50%;
+      border-top-color: transparent;
+      animation: spin 1s linear infinite;
+      margin-left: 4px;
+    }
+    
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+    
+    .delete-btn {
+      background: #ffebee;
+      color: #d32f2f;
+    }
+    
+    .delete-btn:hover {
+      background: #ffcdd2;
+    }
+    
+    .empty-history {
+      text-align: center;
+      padding: 30px 20px;
+      color: #666;
+    }
+    
+    .empty-history i {
+      font-size: 2rem;
+      margin-bottom: 10px;
       opacity: 0.5;
     }
-
-    .empty-state h3 {
-      font-size: 16px;
-      margin-bottom: 8px;
-      color: #495057;
+    
+    .empty-history p {
+      margin: 5px 0;
+      font-size: 0.9rem;
     }
-
-    .empty-state p {
-      font-size: 14px;
-      margin: 0;
-      line-height: 1.5;
+    
+    .scrollbar {
+      scrollbar-width: thin;
+      scrollbar-color: #ccc transparent;
     }
-
-    .notification {
-      position: fixed;
-      top: 16px;
-      right: 16px;
-      padding: 12px 16px;
-      border-radius: 6px;
-      color: white;
-      font-size: 14px;
-      z-index: 1000;
-      max-width: 300px;
-      word-wrap: break-word;
-    }
-
-    .notification.success {
-      background: #28a745;
-    }
-
-    .notification.error {
-      background: #dc3545;
-    }
-
-    .notification.info {
-      background: #17a2b8;
-    }
-
-    .help-tip {
-      background: #f8f9fa;
-      border: 1px solid #e9ecef;
-      border-radius: 6px;
-      padding: 12px;
-      margin-bottom: 16px;
-      font-size: 13px;
-      color: #495057;
-    }
-
-    .help-tip h4 {
-      font-size: 14px;
-      margin: 0 0 8px;
-      color: #1a1a1a;
-      font-weight: 600;
-    }
-
-    .help-tip ul {
-      margin: 0;
-      padding-left: 16px;
-    }
-
-    .help-tip li {
-      margin-bottom: 4px;
-    }
-
-    .help-tip .highlight {
-      background: #fff3cd;
-      padding: 2px 4px;
-      border-radius: 3px;
-      font-weight: 500;
-    }
-
-    /* 滚动条样式 */
-    .recorded-videos::-webkit-scrollbar {
+    
+    .scrollbar::-webkit-scrollbar {
       width: 6px;
     }
-
-    .recorded-videos::-webkit-scrollbar-track {
-      background: #f1f1f1;
+    
+    .scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    
+    .scrollbar::-webkit-scrollbar-thumb {
+      background: #ccc;
       border-radius: 3px;
     }
-
-    .recorded-videos::-webkit-scrollbar-thumb {
-      background: #c1c1c1;
-      border-radius: 3px;
+    
+    .scrollbar::-webkit-scrollbar-thumb:hover {
+      background: #999;
     }
-
-    .recorded-videos::-webkit-scrollbar-thumb:hover {
-      background: #a8a8a8;
+    
+    /* 自定义确认对话框样式 */
+    .custom-confirm-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    
+    .custom-confirm-dialog {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      max-width: 280px;
+      width: 90%;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      text-align: center;
+    }
+    
+    .custom-confirm-title {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 12px;
+    }
+    
+    .custom-confirm-message {
+      font-size: 0.9rem;
+      color: #666;
+      margin-bottom: 20px;
+      line-height: 1.4;
+    }
+    
+    .custom-confirm-buttons {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
+    
+    .custom-confirm-btn {
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      min-width: 60px;
+    }
+    
+    .custom-confirm-btn.cancel {
+      background: #f5f5f5;
+      color: #666;
+    }
+    
+    .custom-confirm-btn.cancel:hover {
+      background: #e0e0e0;
+    }
+    
+    .custom-confirm-btn.confirm {
+      background: #ef4444;
+      color: white;
+    }
+    
+    .custom-confirm-btn.confirm:hover {
+      background: #dc2626;
     }
   </style>
 </head>
 <body>
-  <div class="popup-container">
-    <div class="header">
-      <h1><i class="bi bi-camera-video"></i> 网页视频录制器</h1>
-    </div>
-
-    <!-- 使用说明 -->
-    <div class="help-tip" id="helpTip">
-      <h4><i class="bi bi-info-circle"></i> 使用说明</h4>
-      <ul>
-        <li>点击"开始录制"后，会弹出屏幕选择界面</li>
-        <li>选择要录制的<span class="highlight">屏幕</span>或<span class="highlight">窗口</span></li>
-        <li>如果界面显示不全，可以<span class="highlight">拖动窗口</span>或<span class="highlight">调整浏览器大小</span></li>
-        <li>录制过程中可以随时停止</li>
-      </ul>
-    </div>
-
-    <div class="control-panel">
-      <button id="startBtn" class="btn btn-primary">
-        <i class="bi bi-record-circle"></i>
-        开始录制
-      </button>
-      <button id="stopBtn" class="btn btn-danger" disabled>
-        <i class="bi bi-stop-circle"></i>
-        停止录制
-      </button>
-      <div id="recordingStatus" class="recording-status" style="display: none;">
-        <i class="bi bi-record-circle"></i>
-        正在录制...
-      </div>
-    </div>
-
-    <div class="recorded-videos" id="recordedVideos">
-      <div class="empty-state">
-        <i class="bi bi-camera-video-off"></i>
-        <h3>暂无录制视频</h3>
-        <p>点击"开始录制"按钮开始录制屏幕</p>
-      </div>
-    </div>
+  <div class="header">
+    <h2>网页视频录制</h2>
   </div>
-
+  
+  <div class="controls-section">
+    <div class="timer" id="timer">00:00:00</div>
+    <div class="controls">
+      <button class="ctrl-btn start" id="startBtn" title="开始录制"><i class="bi bi-record-circle"></i></button>
+      <button class="ctrl-btn pause" id="pauseBtn" title="暂停录制" style="display:none;"><i class="bi bi-pause-circle"></i></button>
+      <button class="ctrl-btn pause" id="resumeBtn" title="恢复录制" style="display:none;"><i class="bi bi-play-circle"></i></button>
+      <button class="ctrl-btn stop" id="stopBtn" title="停止录制" disabled><i class="bi bi-stop-circle"></i></button>
+    </div>
+    <div class="status-text" id="statusText">等待录制</div>
+  </div>
+  
+  <div class="history-section scrollbar">
+    <div class="history-header">
+      <div class="history-title">录制历史</div>
+      <div class="history-actions">
+        <button class="refresh-btn" id="refreshHistoryBtn" title="刷新历史">🔄</button>
+        <button class="clear-btn" id="clearHistoryBtn" title="清空历史">清空</button>
+      </div>
+    </div>
+    <div id="history-list">
+      <!-- 录制历史项会在这里动态生成 -->
+    </div>
+    
+    <template id="history-item-template">
+      <div class="video-item">
+        <div class="video-title"></div>
+        <div class="video-meta"></div>
+        <div class="video-actions">
+          <button class="action-btn download-webm" title="下载 WebM 格式">WebM</button>
+          <button class="action-btn download-mp4" title="下载 MP4 格式">MP4</button>
+          <button class="action-btn delete-btn" title="删除">删除</button>
+        </div>
+      </div>
+    </template>
+  </div>
+  
   <script src="popup.js"></script>
 </body>
 </html> 
