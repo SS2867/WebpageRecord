@@ -92,16 +92,9 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         sendResponse({ state: recordingState, elapsed });
     } else if (msg.action === 'startRecording') {
         console.log('开始录制请求');
-        if (recordingState === 'idle') {
-            recordingState = 'recording';
-            startTime = Date.now();
-            elapsed = 0;
-            updateBadge(0);
-            startTimer();
-            broadcastStatus();
-            broadcastControl('startRecording');
-            // TODO: 这里可集成实际录制逻辑
-        }
+        // 不立即设置recording状态，等待真正开始录制后再设置
+        // 只发送控制消息给录制页面
+        broadcastControl('startRecording');
         sendResponse({ success: true });
     } else if (msg.action === 'pauseRecording') {
         console.log('暂停录制请求');
@@ -115,7 +108,7 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         sendResponse({ success: true });
     } else if (msg.action === 'resumeRecording') {
         console.log('恢复录制请求');
-        if (recordingState === 'paused') {
+        if (recordingState === 'paused' && pausedTime > 0) {
             recordingState = 'recording';
             startTime += (Date.now() - pausedTime);
             pausedTime = 0;
@@ -143,9 +136,68 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         sendResponse({ success: true });
     } else if (msg.action === 'recordingStarted') {
         console.log('录制已开始:', msg.recordingId);
+        
+        // 设置真正的录制状态
+        recordingState = 'recording';
+        startTime = Date.now();
+        elapsed = 0;
+        updateBadge(0);
+        startTimer();
+        broadcastStatus();
+        
+        // 广播给所有popup，通知真正开始录制
+        chrome.runtime.sendMessage({ action: 'popupRecordingStarted' }, (response) => {
+            if (chrome.runtime.lastError) {
+                console.log('没有popup在监听:', chrome.runtime.lastError);
+            }
+        });
+        
         sendResponse({ success: true });
     } else if (msg.action === 'recordingStopped') {
         console.log('录制已停止:', msg.recordingId);
+        
+        // 重置录制状态
+        recordingState = 'idle';
+        startTime = 0;
+        pausedTime = 0;
+        elapsed = 0;
+        updateBadge(0);
+        if (timer) {
+            clearInterval(timer);
+            timer = null;
+        }
+        broadcastStatus();
+        
+        // 广播给所有popup，通知录制已停止
+        chrome.runtime.sendMessage({ action: 'popupRecordingStopped' }, (response) => {
+            if (chrome.runtime.lastError) {
+                console.log('没有popup在监听:', chrome.runtime.lastError);
+            }
+        });
+        
+        sendResponse({ success: true });
+    } else if (msg.action === 'recordingPaused') {
+        console.log('录制已暂停:', msg.recordingId);
+        
+        // 设置暂停状态
+        recordingState = 'paused';
+        pausedTime = Date.now();
+        broadcastStatus();
+        updateBadge(elapsed);
+        
+        sendResponse({ success: true });
+    } else if (msg.action === 'recordingResumed') {
+        console.log('录制已恢复:', msg.recordingId);
+        
+        // 设置恢复状态
+        if (recordingState === 'paused' && pausedTime > 0) {
+            recordingState = 'recording';
+            startTime += (Date.now() - pausedTime);
+            pausedTime = 0;
+            startTimer();
+            broadcastStatus();
+        }
+        
         sendResponse({ success: true });
     } else if (msg.action === 'saveRecordingToHistory') {
         if (!msg.recording || !msg.recording.blobData) {
@@ -185,9 +237,15 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
         
         chrome.storage.local.get(['recordings'], (result) => {
             const recordings = result.recordings || [];
-            const recording = recordings.find(r => r.url === videoUrl || r.blobData);
+            // 查找匹配的录制数据，优先通过URL匹配，如果没有找到则返回最新的录制数据
+            let recording = recordings.find(r => r.url === videoUrl);
             
-            if (recording) {
+            if (!recording && recordings.length > 0) {
+                // 如果通过URL没找到，返回最新的录制数据
+                recording = recordings[0];
+            }
+            
+            if (recording && recording.blobData) {
                 sendResponse({ 
                     success: true, 
                     recording: {

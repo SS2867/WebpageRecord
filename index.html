@@ -41,6 +41,77 @@
             opacity: 0.9;
         }
 
+        .extension-banner {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .extension-banner::before {
+            content: "🚀";
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            font-size: 4rem;
+            opacity: 0.1;
+            transform: rotate(15deg);
+        }
+
+        .extension-banner h2 {
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .extension-banner p {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            opacity: 0.95;
+        }
+
+        .extension-banner .btn {
+            background: white;
+            color: #ee5a24;
+            font-weight: 700;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .extension-banner .btn:hover {
+            background: #f8f9fa;
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .extension-features {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .extension-feature {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+
+        .extension-feature::before {
+            content: "✓";
+            font-weight: bold;
+            color: #4CAF50;
+        }
+
         .features-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
@@ -329,6 +400,19 @@
                 font-size: 2rem;
             }
             
+            .extension-banner h2 {
+                font-size: 1.5rem;
+            }
+            
+            .extension-banner p {
+                font-size: 1rem;
+            }
+            
+            .extension-features {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
             .features-grid {
                 grid-template-columns: 1fr;
             }
@@ -382,6 +466,8 @@
             
             <div class="recorder-controls">
                 <button class="btn" id="startBtn">开始录制</button>
+                <button class="btn btn-secondary" id="pauseBtn" style="display:none;">暂停录制</button>
+                <button class="btn btn-secondary" id="resumeBtn" style="display:none;">恢复录制</button>
                 <button class="btn btn-secondary" id="stopBtn" disabled>停止录制</button>
             </div>
             
@@ -398,6 +484,22 @@
                     <p>暂无录制视频</p>
                     <p>开始录制后，视频将显示在这里</p>
                 </div>
+            </div>
+        </div>
+
+        <!-- 插件宣传横幅 -->
+        <div class="extension-banner">
+            <h2>🚀 推荐使用 Chrome 插件版本</h2>
+            <p>获得更好的录制体验，支持更多功能，无需重复打开网页</p>
+            <a href="https://chromewebstore.google.com/detail/%E7%BD%91%E9%A1%B5%E8%A7%86%E9%A2%91%E5%BD%95%E5%88%B6%E5%99%A8/eignncjkllfggpdaacflgeioaoajgjoj?hl=en-GB&utm_source=ext_sidebar" 
+               target="_blank" class="btn">
+                立即安装插件
+            </a>
+            <div class="extension-features">
+                <div class="extension-feature">一键录制</div>
+                <div class="extension-feature">录制历史管理</div>
+                <div class="extension-feature">视频格式转换</div>
+                <div class="extension-feature">离线使用</div>
             </div>
         </div>
 

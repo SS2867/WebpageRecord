@@ -80,6 +80,7 @@
     
     .ctrl-btn.start { color: #43b581; }
     .ctrl-btn.pause { color: #fbbf24; }
+    .ctrl-btn.resume { color: #43b581; }
     .ctrl-btn.stop { color: #ef4444; }
     
     .status-text { 
@@ -362,11 +363,10 @@
   </div>
   
   <div class="controls-section">
-    <div class="timer" id="timer">00:00:00</div>
     <div class="controls">
       <button class="ctrl-btn start" id="startBtn" title="开始录制"><i class="bi bi-record-circle"></i></button>
       <button class="ctrl-btn pause" id="pauseBtn" title="暂停录制" style="display:none;"><i class="bi bi-pause-circle"></i></button>
-      <button class="ctrl-btn pause" id="resumeBtn" title="恢复录制" style="display:none;"><i class="bi bi-play-circle"></i></button>
+      <button class="ctrl-btn resume" id="resumeBtn" title="恢复录制" style="display:none;"><i class="bi bi-play-circle"></i></button>
       <button class="ctrl-btn stop" id="stopBtn" title="停止录制" disabled><i class="bi bi-stop-circle"></i></button>
     </div>
     <div class="status-text" id="statusText">等待录制</div>
@@ -376,8 +376,8 @@
     <div class="history-header">
       <div class="history-title">录制历史</div>
       <div class="history-actions">
-        <button class="refresh-btn" id="refreshHistoryBtn" title="刷新历史">🔄</button>
-        <button class="clear-btn" id="clearHistoryBtn" title="清空历史">清空</button>
+        <button class="refresh-btn" id="refreshHistoryBtn" title="刷新历史"><i class="bi bi-arrow-clockwise"></i></button>
+        <button class="refresh-btn" id="clearHistoryBtn" title="清空历史"><i class="bi bi-trash"></i></button>
       </div>
     </div>
     <div id="history-list">

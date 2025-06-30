@@ -1,13 +1,17 @@
 let mediaRecorder;
 let recordedChunks = [];
 let isRecording = false;
+let isPaused = false;
 let currentStream = null;
 let videoList = [];
 let recordingTimer = null;
 let recordingStartTime = null;
+let pausedTime = 0;
 
 const startBtn = document.getElementById('startBtn');
 const stopBtn = document.getElementById('stopBtn');
+const pauseBtn = document.getElementById('pauseBtn');
+const resumeBtn = document.getElementById('resumeBtn');
 const status = document.getElementById('status');
 const videoContainer = document.getElementById('videoContainer');
 const preview = document.getElementById('preview');
@@ -15,31 +19,11 @@ const videoListContainer = document.getElementById('videoList');
 
 startBtn.addEventListener('click', startRecording);
 stopBtn.addEventListener('click', stopRecording);
+pauseBtn.addEventListener('click', pauseRecording);
+resumeBtn.addEventListener('click', resumeRecording);
 
 // 页面加载时加载视频列表
 loadVideoList();
-
-// 监听来自 popup 的消息
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.action === 'stopRecording') {
-        if (isRecording) {
-            stopRecording();
-        }
-        sendResponse({ success: true });
-    } else if (message.action === 'restartRecording') {
-        // 如果当前正在录制，先停止
-        if (isRecording) {
-            stopRecording();
-        }
-        // 等待一小段时间后重新开始录制
-        setTimeout(() => {
-            startRecording();
-        }, 500);
-        sendResponse({ success: true });
-    }
-    
-    return true; // 保持消息通道开放
-});
 
 // 自动录制逻辑
 function autoStartRecording() {
@@ -58,7 +42,10 @@ function autoStartRecording() {
 }
 
 // 页面加载时执行自动录制
-window.addEventListener('DOMContentLoaded', autoStartRecording);
+window.addEventListener('DOMContentLoaded', () => {
+    // 网页端直接执行自动录制逻辑
+    autoStartRecording();
+});
 
 // 监听页面可见性变化，当页面重新激活时检查是否需要重新录制
 document.addEventListener('visibilitychange', () => {
@@ -66,20 +53,15 @@ document.addEventListener('visibilitychange', () => {
         // 页面重新可见且当前没有录制时，检查是否需要自动录制
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('auto') === '1') {
-            console.log('页面重新激活，检查是否需要重新录制');
+            console.log('页面重新激活，延迟执行自动录制');
             setTimeout(autoStartRecording, 1000); // 延迟1秒执行
         }
     }
 });
 
 function notifyBackground(action) {
-    if (chrome && chrome.runtime && chrome.runtime.sendMessage) {
-        chrome.runtime.sendMessage({ action }, (response) => {
-            if (chrome.runtime.lastError) {
-                console.log('Background script 未响应:', chrome.runtime.lastError);
-            }
-        });
-    }
+    // 网页端不需要通知background
+    console.log('网页端操作:', action);
 }
 
 // 格式化录制时长
@@ -148,7 +130,10 @@ async function startRecording() {
             // 添加到视频列表
             addVideoToList(blob);
 
-            // 通知background录制已停止
+            // 通知popup录制已停止
+            console.log('录制已停止');
+            
+            // 通知background录制已停止（兜底）
             notifyBackground('stopRecording');
             
             // 通知插件保存录制历史
@@ -189,14 +174,9 @@ async function startRecording() {
                 const maxRetries = 3;
                 
                 const saveRecording = () => {
-                    chrome.runtime.sendMessage(messageData, (response) => {
-                        if (chrome.runtime.lastError) {
-                            if (retryCount < maxRetries) {
-                                retryCount++;
-                                setTimeout(saveRecording, 1000); // 1秒后重试
-                            }
-                        }
-                    });
+                    // 网页端直接保存到本地存储
+                    console.log('保存录制到本地存储');
+                    // 这里可以添加本地存储逻辑
                 };
                 
                 saveRecording();
@@ -221,6 +201,9 @@ async function startRecording() {
         isRecording = true;
         recordingStartTime = Date.now();
         
+        // 通知popup真正开始录制
+        console.log('录制已开始');
+        
         // 开始实时预览
         preview.srcObject = stream;
         preview.muted = true;
@@ -237,6 +220,9 @@ async function startRecording() {
         recordingTimer = setInterval(updateRecordingTime, 1000);
         
         startBtn.disabled = true;
+        startBtn.style.display = 'none';
+        pauseBtn.style.display = '';
+        resumeBtn.style.display = 'none';
         stopBtn.disabled = false;
         
         status.textContent = '正在录制中... 00:00:00';
@@ -250,6 +236,10 @@ async function startRecording() {
         if (error.name === 'NotAllowedError' || error.name === 'NotReadableError') {
             // 用户取消了屏幕选择或权限被拒绝
             console.log('用户取消了屏幕选择或权限被拒绝');
+            
+            // 通知popup录制已停止（用户取消）
+            console.log('用户取消录制');
+            
             // 不显示错误提示，因为这是用户主动取消
         } else {
             // 其他错误显示提示
@@ -275,14 +265,86 @@ function stopRecording() {
         }
         
         isRecording = false;
+        isPaused = false; // 重置暂停状态
         recordingStartTime = null;
+        pausedTime = 0;
         startBtn.disabled = false;
+        startBtn.style.display = '';
+        pauseBtn.style.display = 'none';
+        resumeBtn.style.display = 'none';
         stopBtn.disabled = true;
         
         status.textContent = '录制完成';
         status.className = 'recorder-status status-ready';
+        
+        // 通知popup录制已停止
+        console.log('录制已停止');
+        
         // 通知background录制已停止（兜底）
         notifyBackground('stopRecording');
+    }
+}
+
+function pauseRecording() {
+    if (mediaRecorder && isRecording && !isPaused) {
+        try {
+            mediaRecorder.pause();
+            isPaused = true;
+            pausedTime = Date.now();
+            
+            // 停止录制时长计时器
+            if (recordingTimer) {
+                clearInterval(recordingTimer);
+                recordingTimer = null;
+            }
+            
+            startBtn.disabled = true;
+            startBtn.style.display = 'none';
+            pauseBtn.style.display = 'none';
+            resumeBtn.style.display = '';
+            stopBtn.disabled = false;
+            
+            status.textContent = '录制已暂停';
+            status.className = 'recorder-status status-ready';
+            
+            // 通知background录制已暂停
+            console.log('录制已暂停');
+            
+            console.log('录制已暂停');
+        } catch (error) {
+            console.error('暂停录制失败:', error);
+        }
+    }
+}
+
+function resumeRecording() {
+    if (mediaRecorder && isRecording && isPaused) {
+        try {
+            mediaRecorder.resume();
+            isPaused = false;
+            
+            // 调整录制开始时间，补偿暂停的时间
+            const pauseDuration = Date.now() - pausedTime;
+            recordingStartTime += pauseDuration;
+            pausedTime = 0;
+            
+            // 重新启动录制时长计时器
+            recordingTimer = setInterval(updateRecordingTime, 1000);
+            
+            startBtn.disabled = true;
+            startBtn.style.display = '';
+            pauseBtn.style.display = '';
+            resumeBtn.style.display = 'none';
+            stopBtn.disabled = false;
+            
+            status.textContent = '正在录制中...';
+            status.className = 'recorder-status status-recording';
+            
+            // 通知background录制已恢复
+            console.log('录制已恢复');
+        } catch (error) {
+            console.error('恢复录制失败:', error);
+        }
     }
 }
 

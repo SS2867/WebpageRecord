@@ -10,7 +10,6 @@ class PopupVideoRecorder {
         this.recordingStatus = document.getElementById('recordingStatus');
         this.recordedVideos = document.getElementById('history-list');
         this.helpTip = document.getElementById('helpTip');
-        this.timerEl = document.getElementById('timer');
         this.pauseBtn = document.getElementById('pauseBtn');
         this.resumeBtn = document.getElementById('resumeBtn');
         this.statusText = document.getElementById('statusText');
@@ -28,8 +27,8 @@ class PopupVideoRecorder {
             this.loadRecordings();
         }, 100);
         
-        // 尝试同步状态，但不依赖它
-        this.syncState();
+        // 检查当前录制状态，避免误操作
+        this.checkCurrentRecordingStatus();
         
         // 定期检查状态（每5秒检查一次，减少频率）
         this.statusCheckInterval = setInterval(() => {
@@ -38,13 +37,43 @@ class PopupVideoRecorder {
                 this.syncState();
             }
         }, 5000);
+        
+        // 监听来自background的消息
+        chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+            if (msg.action === 'popupRecordingStarted') {
+                console.log('收到录制开始通知，更新UI状态');
+                // 真正开始录制后，更新UI状态和启动计时器
+                this.updateUI('recording', 0);
+                this.startTimer(0);
+            } else if (msg.action === 'popupRecordingStopped') {
+                console.log('收到录制停止通知，重置UI状态');
+                // 录制停止后，重置UI状态和停止计时器
+                this.updateUI('idle', 0);
+                this.stopTimer();
+                
+                // 录制停止后自动刷新历史记录
+                setTimeout(() => {
+                    this.loadRecordings();
+                }, 500); // 延迟500ms确保数据保存完成
+            } else if (msg.action === 'statusUpdate') {
+                // 收到状态更新消息
+                if (msg.state === 'recording') {
+                    this.updateUI('recording', msg.elapsed);
+                    this.startTimer(msg.elapsed);
+                } else if (msg.state === 'paused') {
+                    this.updateUI('paused', msg.elapsed);
+                    this.stopTimer();
+                } else if (msg.state === 'idle') {
+                    this.updateUI('idle', 0);
+                    this.stopTimer();
+                }
+            }
+        });
     }
 
     initializeEventListeners() {
         this.startBtn.addEventListener('click', () => {
-            // 立即更新 UI 状态
-            this.updateUI('recording', 0);
-            this.startTimer(0); // 启动计时器
+            // 不立即更新 UI 状态，等待真正开始录制后再更新
             
             // 发送开始录制消息给 background script
             chrome.runtime.sendMessage({ action: 'startRecording' }, (response) => {
@@ -69,7 +98,7 @@ class PopupVideoRecorder {
                         if (chrome.runtime.lastError) {
                             console.log('录制页面未响应，刷新页面后重新开始');
                             // 如果页面没有响应，刷新页面并添加自动录制参数
-                            chrome.tabs.reload(existingTab.id, { url: chrome.runtime.getURL('index.html?auto=1') });
+                            chrome.tabs.update(existingTab.id, { url: chrome.runtime.getURL('index.html?auto=1') });
                         }
                     });
                 } else {
@@ -108,26 +137,54 @@ class PopupVideoRecorder {
                     }
                 });
             });
+            
+            // 停止录制后自动刷新历史记录
+            setTimeout(() => {
+                this.loadRecordings();
+            }, 500); // 延迟500ms确保数据保存完成
         });
         
         this.pauseBtn.addEventListener('click', () => {
-            // 立即更新 UI 状态
-            this.updateUI('paused', 0);
-            
-            chrome.runtime.sendMessage({ action: 'pauseRecording' }, (response) => {
+            // 获取当前已录制的时间
+            chrome.runtime.sendMessage({ action: 'getStatus' }, (response) => {
                 if (chrome.runtime.lastError) {
                     console.log('Background script 未响应:', chrome.runtime.lastError);
+                    return;
                 }
+                
+                const currentElapsed = response ? response.elapsed : 0;
+                
+                // 立即更新 UI 状态，使用当前已录制的时间
+                this.updateUI('paused', currentElapsed);
+                
+                chrome.runtime.sendMessage({ action: 'pauseRecording' }, (response) => {
+                    if (chrome.runtime.lastError) {
+                        console.log('Background script 未响应:', chrome.runtime.lastError);
+                    }
+                });
             });
         });
         this.resumeBtn.addEventListener('click', () => {
-            // 立即更新 UI 状态
-            this.updateUI('recording', 0);
-            
             chrome.runtime.sendMessage({ action: 'resumeRecording' }, (response) => {
                 if (chrome.runtime.lastError) {
                     console.log('Background script 未响应:', chrome.runtime.lastError);
+                    return;
                 }
+                
+                // 等待一小段时间让background处理完成，然后获取最新状态
+                setTimeout(() => {
+                    chrome.runtime.sendMessage({ action: 'getStatus' }, (statusResponse) => {
+                        if (chrome.runtime.lastError) {
+                            console.log('Background script 未响应:', chrome.runtime.lastError);
+                            return;
+                        }
+                        
+                        const currentElapsed = statusResponse ? statusResponse.elapsed : 0;
+                        
+                        // 更新 UI 状态，使用background计算的时间
+                        this.updateUI('recording', currentElapsed);
+                    });
+                }, 100);
             });
         });
         
@@ -316,6 +373,11 @@ class PopupVideoRecorder {
                 }
             });
             
+            // 停止录制后自动刷新历史记录
+            setTimeout(() => {
+                this.loadRecordings();
+            }, 500); // 延迟500ms确保数据保存完成
+            
         } catch (err) {
             console.error('停止录制时发生错误:', err);
             this.handleRecordingError();
@@ -350,6 +412,35 @@ class PopupVideoRecorder {
             filename: `录制视频_${new Date().toLocaleString()}.webm`,
             blob: blob
         };
+
+        // 同时保存到 background 的存储中
+        const reader = new FileReader();
+        reader.onload = () => {
+            // 更新本地录制数据，添加 blobData
+            recording.blobData = reader.result;
+            
+            const messageData = {
+                action: 'saveRecordingToHistory',
+                recording: {
+                    ...recording,
+                    blob: null // 移除 blob 对象
+                }
+            };
+            
+            chrome.runtime.sendMessage(messageData, (response) => {
+                if (chrome.runtime.lastError) {
+                    console.log('保存录制数据到 background 失败:', chrome.runtime.lastError);
+                } else {
+                    console.log('录制数据已保存到 background');
+                }
+            });
+        };
+        
+        reader.onerror = (error) => {
+            console.error('Blob 转换为 base64 失败:', error);
+        };
+        
+        reader.readAsDataURL(blob);
 
         this.recordings.unshift(recording); // 添加到开头
         this.saveRecordings();
@@ -716,8 +807,29 @@ class PopupVideoRecorder {
         // 从录制记录中找到对应的视频信息
         const recording = this.recordings.find(r => r.url === videoUrl);
         if (!recording) {
-            console.error('未找到对应的录制记录');
-            return;
+            console.error('未找到对应的录制记录，尝试查找最新记录');
+            // 如果没找到，使用最新的录制记录
+            if (this.recordings.length > 0) {
+                const latestRecording = this.recordings[0];
+                console.log('使用最新录制记录:', latestRecording);
+                
+                // 将视频数据存储到临时存储中
+                const tempVideoData = {
+                    title: `video_${new Date(latestRecording.timestamp).toISOString().slice(0, 19).replace(/[-:]/g, '').replace('T', '_')}`,
+                    timestamp: latestRecording.timestamp,
+                    blobData: latestRecording.blobData
+                };
+                
+                chrome.storage.local.set({ tempVideoData }, () => {
+                    // 打开播放器页面
+                    const playerUrl = chrome.runtime.getURL('player.html');
+                    chrome.tabs.create({ url: playerUrl });
+                });
+                return;
+            } else {
+                console.error('没有可用的录制记录');
+                return;
+            }
         }
         
         // 将视频数据存储到临时存储中
@@ -871,25 +983,37 @@ class PopupVideoRecorder {
         
         if (state === 'idle') {
             this.startBtn.style.display = '';
+            this.startBtn.disabled = false;
+            this.startBtn.innerHTML = '<i class="bi bi-record-circle"></i>';
             this.pauseBtn.style.display = 'none';
             this.resumeBtn.style.display = 'none';
             this.stopBtn.disabled = true;
             this.statusText.textContent = '等待录制';
             this.stopTimer(); // 停止计时器
         } else if (state === 'recording') {
-            this.startBtn.style.display = 'none';
+            this.startBtn.style.display = '';
+            this.startBtn.disabled = true; // 录制时禁用开始按钮
+            this.startBtn.innerHTML = '<i class="bi bi-record-circle"></i>';
             this.pauseBtn.style.display = '';
+            this.pauseBtn.disabled = false; // 新增，确保可点击
             this.resumeBtn.style.display = 'none';
             this.stopBtn.disabled = false;
             this.statusText.textContent = '正在录制...';
             this.startTimer(sec); // 启动计时器
         } else if (state === 'paused') {
-            this.startBtn.style.display = 'none';
+            this.startBtn.style.display = ''; // 暂停时显示开始按钮
             this.pauseBtn.style.display = 'none';
-            this.resumeBtn.style.display = '';
+            this.resumeBtn.style.display = ''; // 显示恢复按钮
+            this.resumeBtn.disabled = false; // 暂停时启用恢复按钮
             this.stopBtn.disabled = false;
             this.statusText.textContent = '已暂停';
-            this.stopTimer(); // 暂停时停止计时器
+            // 暂停时不停止计时器，保持显示当前时间
+            
+            // 调试信息
+            console.log('暂停状态 - 开始按钮显示:', this.startBtn.style.display);
+            console.log('暂停状态 - 暂停按钮显示:', this.pauseBtn.style.display);
+            console.log('暂停状态 - 恢复按钮显示:', this.resumeBtn.style.display);
+            console.log('暂停状态 - 恢复按钮启用:', !this.resumeBtn.disabled);
         }
     }
 
@@ -897,7 +1021,14 @@ class PopupVideoRecorder {
         const h = String(Math.floor(sec / 3600)).padStart(2, '0');
         const m = String(Math.floor((sec % 3600) / 60)).padStart(2, '0');
         const s = String(sec % 60).padStart(2, '0');
-        this.timerEl.textContent = `${h}:${m}:${s}`;
+        const timeStr = `${h}:${m}:${s}`;
+        
+        // 更新当前显示的按钮的title
+        if (this.currentState === 'recording' && this.pauseBtn.style.display !== 'none') {
+            this.pauseBtn.title = `暂停录制 (${timeStr})`;
+        } else if (this.currentState === 'paused' && this.resumeBtn.style.display !== 'none') {
+            this.resumeBtn.title = `恢复录制 (${timeStr})`;
+        }
     }
 
     startTimer(sec) {
@@ -969,6 +1100,54 @@ class PopupVideoRecorder {
                 }
             };
             document.addEventListener('keydown', handleEsc);
+        });
+    }
+
+    checkCurrentRecordingStatus() {
+        chrome.runtime.sendMessage({ action: 'getStatus' }, (resp) => {
+            if (chrome.runtime.lastError) {
+                console.log('Background script 未响应:', chrome.runtime.lastError);
+                this.updateUI('idle', 0);
+                return;
+            }
+            
+            if (resp && resp.state === 'recording') {
+                // 正在录制
+                this.startBtn.style.display = 'none';
+                this.pauseBtn.style.display = '';
+                this.resumeBtn.style.display = 'none';
+                this.stopBtn.style.display = '';
+                this.startBtn.disabled = true;
+                this.pauseBtn.disabled = false;
+                this.resumeBtn.disabled = true;
+                this.stopBtn.disabled = false;
+                this.updateUI('recording', resp.elapsed);
+                this.startTimer(resp.elapsed);
+            } else if (resp && resp.state === 'paused') {
+                // 已暂停
+                this.startBtn.style.display = ''; // 暂停时显示开始按钮
+                this.pauseBtn.style.display = 'none';
+                this.resumeBtn.style.display = '';
+                this.stopBtn.style.display = '';
+                this.startBtn.disabled = true; // 暂停时禁用开始按钮
+                this.pauseBtn.disabled = true;
+                this.resumeBtn.disabled = false;
+                this.stopBtn.disabled = false;
+                this.updateUI('paused', resp.elapsed);
+                // 暂停时不停止计时器，保持显示当前时间
+            } else {
+                // 空闲
+                this.startBtn.style.display = '';
+                this.pauseBtn.style.display = 'none';
+                this.resumeBtn.style.display = 'none';
+                this.stopBtn.style.display = '';
+                this.startBtn.disabled = false;
+                this.pauseBtn.disabled = true;
+                this.resumeBtn.disabled = true;
+                this.stopBtn.disabled = true;
+                this.updateUI('idle', 0);
+                this.stopTimer();
+            }
         });
     }
 }
